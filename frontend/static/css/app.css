@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --bg-primary: #07090e;
+  --bg-surface: #0f141f;
+  --bg-card: #141b2a;
+  --bg-hover: #1c263c;
+  --gold-500: #f59e0b;
+  --gold-400: #fbbf24;
+  --gold-600: #d97706;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-gold: rgba(245, 158, 11, 0.25);
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+code, pre {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.4);
+}
+
+/* Markdown prose */
+.prose {
+  color: #e2e8f0;
+  line-height: 1.65;
+  font-size: 0.95rem;
+}
+.prose p {
+  margin-bottom: 0.75rem;
+}
+.prose p:last-child {
+  margin-bottom: 0;
+}
+.prose h1, .prose h2, .prose h3 {
+  color: #ffffff;
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.prose ol, .prose ul {
+  margin-left: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+.prose ol {
+  list-style-type: decimal;
+}
+.prose ul {
+  list-style-type: disc;
+}
+.prose li {
+  margin-bottom: 0.25rem;
+}
+.prose pre {
+  background: #0d1117 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 0.85rem 1rem;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+.prose code:not(pre code) {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fbbf24;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.85em;
+}
+.prose a {
+  color: #38bdf8;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+.prose a:hover {
+  color: #7dd3fc;
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(15, 20, 31, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+}
+
+.gold-glow {
+  box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.15);
+}
+
+/* Recording Pulse */
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+.recording-active {
+  animation: pulse-ring 1.5s infinite;
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+}

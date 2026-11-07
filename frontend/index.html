@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GoldSea AI — Genuinely Helpful Personal Assistant</title>
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#090d16">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            gold: {
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+              700: '#b45309',
+            },
+            dark: {
+              950: '#07090e',
+              900: '#0b101b',
+              850: '#0f1422',
+              800: '#141b2c',
+              750: '#1c263c',
+              700: '#25324e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Marked.js Markdown Parser & DOMPurify -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.9/dist/purify.min.js"></script>
+  
+  <!-- Highlight.js for Syntax Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="bg-dark-950 text-slate-100 flex h-[100dvh] w-screen overflow-hidden selection:bg-gold-500/30 selection:text-gold-400">
+
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden md:hidden transition-opacity"></div>
+
+  <!-- Sidebar (Responsive Drawer) -->
+  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-72 bg-dark-900 border-r border-white/5 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out">
+    
+    <!-- Sidebar Header -->
+    <div class="p-4 border-b border-white/5 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-gold-600 to-amber-300 flex items-center justify-center text-dark-950 font-bold shadow-md shadow-gold-500/20">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-sm text-white tracking-wide flex items-center gap-1.5">
+            GoldSea <span class="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-gold-500/20 text-gold-400 border border-gold-500/30">AI</span>
+          </h1>
+          <p class="text-[11px] text-slate-400">Personal Agent for Gokul</p>
+        </div>
+      </div>
+      <!-- Close drawer on mobile -->
+      <button id="close-sidebar-btn" class="md:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- New Chat Button -->
+    <div class="p-3">
+      <button id="new-chat-btn" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-gold-500 to-amber-500 hover:from-gold-600 hover:to-amber-600 text-dark-950 font-semibold text-xs py-2.5 px-3 rounded-xl shadow-md shadow-gold-500/10 transition-all active:scale-[0.98]">
+        <i data-lucide="plus" class="w-4 h-4 stroke-[2.5]"></i>
+        <span>New Chat</span>
+        <span class="hidden md:inline-block text-[10px] opacity-75 bg-dark-950/20 px-1.5 py-0.5 rounded font-mono ml-auto">Ctrl+N</span>
+      </button>
+    </div>
+
+    <!-- Search Conversations & Filter -->
+    <div class="px-3 pb-2">
+      <div class="relative">
+        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400"></i>
+        <input id="search-conv-input" type="text" placeholder="Search chats..." class="w-full bg-dark-850 border border-white/5 text-xs text-slate-200 pl-8 pr-3 py-1.5 rounded-lg focus:outline-none focus:border-gold-500/40">
+      </div>
+    </div>
+
+    <!-- Conversations List -->
+    <div class="flex-1 overflow-y-auto px-2 space-y-0.5" id="conversations-list">
+      <!-- Dynamic Conversation Items -->
+    </div>
+
+    <!-- User Profile & Action Footer -->
+    <div class="p-3 border-t border-white/5 space-y-2 bg-dark-950/50">
+      <!-- User Profile Badge -->
+      <div class="flex items-center justify-between p-2 rounded-lg bg-dark-850/80 border border-white/5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-full bg-slate-700 border border-gold-500/40 flex items-center justify-center text-xs font-bold text-gold-400">
+            G
+          </div>
+          <div>
+            <div class="text-xs font-medium text-slate-200">Gokul</div>
+            <div class="text-[10px] text-emerald-400 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Memory Active
+            </div>
+          </div>
+        </div>
+        <!-- Export Button -->
+        <button id="export-chat-btn" title="Export Current Chat" class="p-1.5 text-slate-400 hover:text-gold-400 rounded-md hover:bg-white/5 transition-colors">
+          <i data-lucide="download" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Action Utilities -->
+      <div class="flex items-center justify-between text-[11px] text-slate-400 px-1 pt-1">
+        <button id="shortcuts-modal-btn" class="hover:text-slate-200 flex items-center gap-1">
+          <i data-lucide="keyboard" class="w-3 h-3"></i>
+          Shortcuts
+        </button>
+        <span id="pwa-install-btn" class="hidden cursor-pointer text-gold-400 hover:text-gold-300 font-medium flex items-center gap-1">
+          <i data-lucide="smartphone" class="w-3 h-3"></i>
+          Install App
+        </span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Chat Workspace -->
+  <main class="flex-1 flex flex-col h-full w-full overflow-hidden bg-dark-950 relative">
+    
+    <!-- Top Bar Navigation (Desktop & Mobile) -->
+    <header class="h-14 border-b border-white/5 px-4 flex items-center justify-between bg-dark-900/60 backdrop-blur-md z-10">
+      <div class="flex items-center gap-3">
+        <!-- Hamburger Menu for Mobile -->
+        <button id="open-sidebar-btn" class="md:hidden p-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/5">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <!-- Active Chat Title -->
+        <div>
+          <h2 id="active-chat-title" class="font-semibold text-xs md:text-sm text-slate-200 max-w-[200px] md:max-w-md truncate">
+            New Conversation
+          </h2>
+          <p class="text-[10px] text-slate-400 hidden sm:block">Direct, verified answers with live web grounding</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Quick Action Trigger Button -->
+        <button id="open-quick-actions-btn" class="hidden sm:flex items-center gap-1.5 text-xs text-slate-300 bg-dark-850 hover:bg-dark-800 border border-white/5 px-2.5 py-1.5 rounded-lg transition-colors">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-gold-400"></i>
+          <span>Quick Actions</span>
+          <span class="text-[10px] font-mono text-slate-400 bg-white/5 px-1 rounded ml-1">Ctrl+K</span>
+        </button>
+        <!-- Clear / Reset Chat -->
+        <button id="header-new-chat-btn" title="Start New Chat" class="p-2 text-slate-400 hover:text-gold-400 rounded-lg hover:bg-white/5 transition-colors">
+          <i data-lucide="square-pen" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Chat Messages Scroll Area -->
+    <div id="messages-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+      
+      <!-- Welcome & Quick Action Grid (Shown when chat is empty) -->
+      <div id="welcome-view" class="max-w-2xl mx-auto py-6 sm:py-10 space-y-8">
+        
+        <div class="text-center space-y-2">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-gold-500 to-amber-300 text-dark-950 font-bold mb-2 shadow-lg shadow-gold-500/20">
+            <i data-lucide="bot" class="w-6 h-6 stroke-[2]"></i>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            Hello Gokul, what would you like to solve?
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
+            Your personal assistant is direct, remembers your preferences, verifies facts with web search, and never hallucinates.
+          </p>
+        </div>
+
+        <!-- 6 Home Screen Quick Action Cards -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 px-1">Daily-Use Shortcuts</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            
+            <button data-quick-action="summarize" class="quick-action-card group text-left p-3.5 rounded-xl bg-dark-900/80 hover:bg-dark-850 border border-white/5 hover:border-gold-500/30 transition-all hover:-translate-y-0.5 active:translate-y-0">
+              <div class="flex items-center gap-2.5 text-gold-400 font-medium text-xs mb-1">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+                <span>Summarize this text</span>
+              </div>
+              <p class="text-[11px] text-slate-400 group-hover:text-slate-300">Condense articles or notes into clean, punchy takeaways.</p>
+            </button>
+
+            <button data-quick-action="grammar" class="quick-action-card group text-left p-3.5 rounded-xl bg-dark-900/80 hover:bg-dark-850 border border-white/5 hover:border-gold-500/30 transition-all hover:-translate-y-0.5 active:translate-y-0">
+              <div class="flex items-center gap-2.5 text-blue-400 font-medium text-xs mb-1">
+                <i data-lucide="spell-check" class="w-4 h-4"></i>
+                <span>Fix my grammar</span>
+              </div>
+              <p class="text-[11px] text-slate-400 group-hover:text-slate-300">Polish tone, sentence structure, and vocabulary instantly.</p>
+            </button>
+
+            <button data-quick-action="eli5" class="quick-action-card group text-left p-3.5 rounded-xl bg-dark-900/80 hover:bg-dark-850 border border-white/5 hover:border-gold-500/30 transition-all hover:-translate-y-0.5 active:translate-y-0">
+              <div class="flex items-center gap-2.5 text-emerald-400 font-medium text-xs mb-1">
+                <i data-lucide="baby" class="w-4 h-4"></i>
+                <span>Explain like I'm new</span>
+              </div>
+              <p class="text-[11px] text-slate-400 group-hover:text-slate-300">Break down complex technical ideas into intuitive analogies.</p>
+            </button>
+
+            <button data-quick-action="email" class="quick-action-card group text-left p-3.5 rounded-xl bg-dark-900/80 hover:bg-dark-850 border border-white/5 hover:border-gold-500/30 transition-all hover:-translate-y-0.5 active:translate-y-0">
+              <div class="flex items-center gap-2.5 text-purple-400 font-medium text-xs mb-1">
+                <i data-lucide="mail" class="w-4 h-4"></i>
+                <span>Draft an email</span>
+              </div>
+              <p class="text-[11px] text-slate-400 group-hover:text-slate-300">Create crisp, professional communications with active voice.</p>
+            </button>
+
+            <button data-quick-action="debug" class="quick-action-card group text-left p-3.5 rounded-xl bg-dark-900/80 hover:bg-dark-850 border border-white/5 hover:border-gold-500/30 transition-all hover:-translate-y-0.5 active:translate-y-0">
+              <div class="flex items-center gap-2.5 text-rose-400 font-medium text-xs mb-1">
+                <i data-lucide="bug" class="w-4 h-4"></i>
+                <span>Debug my code</span>
+              </div>
+              <p class="text-[11px] text-slate-400 group-hover:text-slate-300">Find the bug, explain the root cause, and get clean fixed code.</p>
+            </button>
+
+            <button data-quick-action="plan" class="quick-action-card group text-left p-3.5 rounded-xl bg-dark-900/80 hover:bg-dark-850 border border-white/5 hover:border-gold-500/30 transition-all hover:-translate-y-0.5 active:translate-y-0">
+              <div class="flex items-center gap-2.5 text-cyan-400 font-medium text-xs mb-1">
+                <i data-lucide="calendar" class="w-4 h-4"></i>
+                <span>Plan my day</span>
+              </div>
+              <p class="text-[11px] text-slate-400 group-hover:text-slate-300">Turn messy to-do lists into high-impact time-blocked schedules.</p>
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Messages List -->
+      <div id="messages-list" class="max-w-3xl mx-auto space-y-6">
+        <!-- Rendered dynamically -->
+      </div>
+
+    </div>
+
+    <!-- Bottom Input Dock -->
+    <div class="p-3 md:p-4 bg-dark-900/80 backdrop-blur-md border-t border-white/5">
+      <div class="max-w-3xl mx-auto">
+        
+        <!-- File Attachment Badge (If file attached) -->
+        <div id="attachment-preview" class="hidden mb-2 inline-flex items-center gap-2 bg-dark-800 border border-white/10 px-3 py-1.5 rounded-lg text-xs text-slate-200">
+          <i data-lucide="paperclip" class="w-3.5 h-3.5 text-gold-400"></i>
+          <span id="attachment-name" class="font-mono text-[11px]">filename.txt</span>
+          <button id="remove-attachment-btn" class="text-slate-400 hover:text-white ml-1">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Main Input Container -->
+        <div class="relative flex items-end gap-2 bg-dark-850 border border-white/10 focus-within:border-gold-500/50 rounded-2xl p-2 transition-all">
+          
+          <!-- Hidden File Input -->
+          <input type="file" id="file-input" class="hidden" accept=".txt,.py,.js,.html,.json,.md,.csv,.pdf">
+          
+          <!-- Attach File Button -->
+          <button id="attach-file-btn" type="button" title="Upload Document or Code" class="p-2 text-slate-400 hover:text-gold-400 rounded-xl hover:bg-white/5 transition-colors">
+            <i data-lucide="paperclip" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Voice Input Button (Web Speech API) -->
+          <button id="voice-input-btn" type="button" title="Voice Input" class="p-2 text-slate-400 hover:text-gold-400 rounded-xl hover:bg-white/5 transition-colors">
+            <i data-lucide="mic" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Auto-expanding Textarea -->
+          <textarea
+            id="chat-input"
+            rows="1"
+            placeholder="Ask anything direct or paste code / text..."
+            class="flex-1 bg-transparent text-sm text-slate-100 placeholder-slate-400 focus:outline-none resize-none py-2 px-1 max-h-36 leading-relaxed"
+          ></textarea>
+
+          <!-- Send Button -->
+          <button
+            id="send-btn"
+            type="button"
+            disabled
+            class="p-2 rounded-xl bg-gold-500 text-dark-950 hover:bg-gold-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 shadow-md shadow-gold-500/20"
+          >
+            <i data-lucide="arrow-up" class="w-5 h-5 stroke-[2.5]"></i>
+          </button>
+
+        </div>
+
+        <!-- Helper hint -->
+        <div class="flex items-center justify-between text-[11px] text-slate-400 px-2 pt-1.5">
+          <span class="flex items-center gap-1.5">
+            <i data-lucide="globe" class="w-3 h-3 text-cyan-400"></i>
+            Live web grounding automatic
+          </span>
+          <span class="hidden sm:inline">Press <kbd class="font-mono bg-white/5 px-1 rounded">Enter</kbd> to send, <kbd class="font-mono bg-white/5 px-1 rounded">Shift+Enter</kbd> for newline</span>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div id="shortcuts-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-dark-900 border border-white/10 rounded-2xl max-w-md w-full p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-white/5 pb-3">
+        <h3 class="font-bold text-sm text-white flex items-center gap-2">
+          <i data-lucide="keyboard" class="w-4 h-4 text-gold-400"></i>
+          Keyboard Shortcuts
+        </h3>
+        <button id="close-shortcuts-btn" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="space-y-2 text-xs">
+        <div class="flex items-center justify-between py-1 border-b border-white/5">
+          <span class="text-slate-300">Send message</span>
+          <kbd class="font-mono bg-dark-800 border border-white/10 px-2 py-0.5 rounded text-gold-400">Enter</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-white/5">
+          <span class="text-slate-300">New line in input</span>
+          <kbd class="font-mono bg-dark-800 border border-white/10 px-2 py-0.5 rounded text-gold-400">Shift + Enter</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-white/5">
+          <span class="text-slate-300">Start new chat</span>
+          <kbd class="font-mono bg-dark-800 border border-white/10 px-2 py-0.5 rounded text-gold-400">Ctrl + N</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-white/5">
+          <span class="text-slate-300">Quick Actions modal</span>
+          <kbd class="font-mono bg-dark-800 border border-white/10 px-2 py-0.5 rounded text-gold-400">Ctrl + K</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-white/5">
+          <span class="text-slate-300">Toggle shortcuts cheat sheet</span>
+          <kbd class="font-mono bg-dark-800 border border-white/10 px-2 py-0.5 rounded text-gold-400">Ctrl + /</kbd>
+        </div>
+        <div class="flex items-center justify-between py-1">
+          <span class="text-slate-300">Close modal or drawer</span>
+          <kbd class="font-mono bg-dark-800 border border-white/10 px-2 py-0.5 rounded text-gold-400">Escape</kbd>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div id="export-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-dark-900 border border-white/10 rounded-2xl max-w-sm w-full p-5 space-y-4">
+      <div class="flex items-center justify-between border-b border-white/5 pb-3">
+        <h3 class="font-bold text-sm text-white flex items-center gap-2">
+          <i data-lucide="download" class="w-4 h-4 text-gold-400"></i>
+          Export Conversation
+        </h3>
+        <button id="close-export-btn" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-400">Choose your preferred export format:</p>
+      <div class="grid grid-cols-3 gap-2">
+        <button data-format="md" class="export-format-btn p-3 rounded-xl bg-dark-850 hover:bg-dark-800 border border-white/5 hover:border-gold-500/30 text-center transition-all">
+          <div class="font-bold text-xs text-gold-400 mb-0.5">.MD</div>
+          <div class="text-[10px] text-slate-400">Markdown</div>
+        </button>
+        <button data-format="json" class="export-format-btn p-3 rounded-xl bg-dark-850 hover:bg-dark-800 border border-white/5 hover:border-gold-500/30 text-center transition-all">
+          <div class="font-bold text-xs text-blue-400 mb-0.5">.JSON</div>
+          <div class="text-[10px] text-slate-400">Data dump</div>
+        </button>
+        <button data-format="txt" class="export-format-btn p-3 rounded-xl bg-dark-850 hover:bg-dark-800 border border-white/5 hover:border-gold-500/30 text-center transition-all">
+          <div class="font-bold text-xs text-emerald-400 mb-0.5">.TXT</div>
+          <div class="text-[10px] text-slate-400">Plain text</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Logic & PWA Registration -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
