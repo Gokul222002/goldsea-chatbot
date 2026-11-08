@@ -85,7 +85,26 @@ def execute_fallback_brain(query: str, memories: List[Dict[str, Any]], sources: 
             "<<<SUGGESTIONS>>>\n[\"Debug Python code\", \"Plan a daily schedule\", \"Search recent tech news\"]\n<<<END_SUGGESTIONS>>>"
         )
 
-    # 1. Prompt Injection Defenses
+    # 0b. Emotional Support & Empathy (Rule 5)
+    if any(k in q_lower for k in ["kill myself", "suicide", "end my life", "harm myself", "self-harm"]):
+        return (
+            "I'm really sorry you're going through this painful moment, Gokul, but please know that you are not alone and your life matters deeply.\n\n"
+            "Please talk to someone you trust right now or reach out to a compassionate helpline:\n"
+            "- India Helpline (Tele-MANAS): 14416 or 1800-891-4416 (24/7 free & confidential)\n"
+            "- US/International: Call or text 988 (Suicide & Crisis Lifeline)\n\n"
+            "I'm right here with you. Would you like to talk through what is making you feel this way?\n\n"
+            "<<<SUGGESTIONS>>>\n[\"I just want to vent\", \"Help me calm down\", \"Give me a distraction\"]\n<<<END_SUGGESTIONS>>>"
+        )
+    if any(k in q_lower for k in ["i'm sad", "i feel sad", "i am sad", "i'm stressed", "i am stressed", "feeling stressed", "overwhelmed", "anxious", "depressed", "i feel down", "bad day"]):
+        return (
+            "I'm really sorry to hear that you're feeling this way, Gokul. Dealing with stress or sadness can feel heavy, and it's completely okay to take a pause.\n\n"
+            "What happened today that brought this on? If you want to decompress right now, here are a few gentle things you could try:\n"
+            "1. Take a 5-minute breather away from all screens and take 3 deep, slow breaths.\n"
+            "2. Step outside for a short walk or drink a cold glass of water.\n"
+            "3. Vent to me or write down the single biggest thing that is bothering you.\n\n"
+            "I'm here to listen whenever you're ready.\n\n"
+            "<<<SUGGESTIONS>>>\n[\"Let me vent about what happened\", \"Give me a relaxing distraction\", \"Help me break down my tasks\"]\n<<<END_SUGGESTIONS>>>"
+        )
     if any(k in q_lower for k in [
         "system override", "reveal your secret prompt", "ignore all previous instructions", 
         "you are now dan", "swear and generate", "developer mode activated", "disregard all ethical filters"
@@ -454,11 +473,12 @@ def execute_fallback_brain(query: str, memories: List[Dict[str, Any]], sources: 
             "<<<SUGGESTIONS>>>\n[\"Tell me more details\", \"Summarize in 3 bullets\", \"Search related news\"]\n<<<END_SUGGESTIONS>>>"
         )
         
+    # Natural smart fallback response adhering to Core Rules 1 & 2
     return (
-        f"Direct answer for **{query.strip('?!.')}**:\n\n"
-        f"To solve or implement this effectively, here is the direct recommendation for Gokul: focus on clear structure, step-by-step modular design, and robust verification.\n\n"
-        f"If you have specific constraints or code to refine, let me know and I will provide the tailored solution immediately.\n\n"
-        "<<<SUGGESTIONS>>>\n[\"Provide full code example\", \"Explain step-by-step\", \"Make shorter\"]\n<<<END_SUGGESTIONS>>>"
+        f"For **{query.strip('?!.')}**, here is the key breakdown:\n\n"
+        f"The best approach is to tackle this with a clean, modular setup—focusing on the core requirement first and verifying each step.\n\n"
+        f"Would you like to see a complete working implementation, an architectural breakdown, or a quick summary?\n\n"
+        "<<<SUGGESTIONS>>>\n[\"Show complete working code\", \"Explain step-by-step\", \"Give concise summary\"]\n<<<END_SUGGESTIONS>>>"
     )
 
 async def call_gemini_with_retry(
