@@ -3,15 +3,15 @@ from typing import List, Dict, Any, Optional
 from backend.database import save_memory, get_all_memories
 
 MEMORY_EXTRACTION_RULES = [
-    # Name patterns
-    (r"(?:my name is|call me|i am|i'm)\s+([A-Z][a-zA-Z0-9_\-\s]{1,30})", "user_name", "profile"),
+    # Name patterns: strictly "my name is X" or "call me X" with capitalized alphabetic name
+    (r"(?:my name is|call me)\s+([A-Z][a-zA-Z]{1,20}(?:\s+[A-Z][a-zA-Z]{1,20})?)", "user_name", "profile"),
     # Direct preference statements
     (r"(?:i prefer|my preference is)\s+([^.,;\n]{3,80})", "preference", "preference"),
     (r"(?:i always want|always give me|please always)\s+([^.,;\n]{3,80})", "formatting_rule", "preference"),
     # Tone & style preferences
     (r"(?:keep replies short|i like short answers|be concise|concise replies only)", "reply_length", "concise"),
     (r"(?:i code in|my main programming language is|favorite language is)\s+([a-zA-Z#+]{1,20})", "preferred_language", "preference"),
-    (r"(?:i work as|i am a)\s+([a-zA-Z\s]{3,40})", "profession", "profile"),
+    (r"(?:i work as a?|my job is a?)\s+([a-zA-Z\s]{3,40})", "profession", "profile"),
 ]
 
 def extract_and_save_memories(message: str) -> List[Dict[str, str]]:

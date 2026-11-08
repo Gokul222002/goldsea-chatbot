@@ -53,65 +53,54 @@ def extract_suggestions(text: str) -> Tuple[str, List[str]]:
     return cleaned_text, chips
 
 async def call_gemini_api(system_prompt: str, history_messages: List[Dict[str, Any]], query: str) -> Tuple[Optional[str], Optional[str]]:
-    """Calls Gemini API using google-genai SDK or direct REST fallback with max_output_tokens=2048."""
+    """Calls Gemini API using REST v1beta with resilient model failover and max_output_tokens=2048."""
     if not GEMINI_API_KEY:
         return None, "GEMINI_API_KEY not configured"
 
-    # 1. Try google-genai SDK
-    if GENAI_AVAILABLE:
-        try:
-            client = genai.Client(api_key=GEMINI_API_KEY)
-            contents = []
-            for m in history_messages:
-                role = "user" if m.get("role") == "user" else "model"
-                contents.append({"role": role, "parts": [{"text": m.get("content", "")}]})
-            contents.append({"role": "user", "parts": [{"text": query}]})
+    candidate_models = [GEMINI_MODEL]
+    for alt in ["gemini-3-flash-preview", "gemini-3.1-flash-lite-preview"]:
+        if alt not in candidate_models:
+            candidate_models.append(alt)
 
-            response = await asyncio.to_thread(
-                client.models.generate_content,
-                model=GEMINI_MODEL,
-                contents=contents,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_prompt,
-                    temperature=0.3,
-                    max_output_tokens=2048
-                )
-            )
-            if response and response.text:
-                return response.text.strip(), None
-        except Exception as e:
-            err = str(e)
-            if "quota" in err.lower() or "429" in err:
-                return None, f"Gemini quota exceeded: {err}"
-            # Fall through to REST attempt
+    contents_payload = []
+    for m in history_messages:
+        role = "user" if m.get("role") == "user" else "model"
+        contents_payload.append({"role": role, "parts": [{"text": m.get("content", "")}]})
+    contents_payload.append({"role": "user", "parts": [{"text": query}]})
 
-    # 2. Direct REST fallback
-    try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
-        contents_payload = []
-        for m in history_messages:
-            role = "user" if m.get("role") == "user" else "model"
-            contents_payload.append({"role": role, "parts": [{"text": m.get("content", "")}]})
-        contents_payload.append({"role": "user", "parts": [{"text": query}]})
-
-        body = {
-            "system_instruction": {"parts": [{"text": system_prompt}]},
-            "contents": contents_payload,
-            "generationConfig": {
-                "temperature": 0.3,
-                "maxOutputTokens": 2048
-            }
+    body = {
+        "system_instruction": {"parts": [{"text": system_prompt}]},
+        "contents": contents_payload,
+        "generationConfig": {
+            "temperature": 0.3,
+            "maxOutputTokens": 2048
         }
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(url, json=body)
-            if resp.status_code == 200:
-                data = resp.json()
-                text = data["candidates"][0]["content"]["parts"][0]["text"]
-                return text.strip(), None
-            else:
-                return None, f"Gemini REST error {resp.status_code}: {resp.text}"
-    except Exception as e:
-        return None, f"Gemini connection error: {str(e)}"
+    }
+
+    last_error = ""
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        for model in candidate_models:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={GEMINI_API_KEY}"
+                resp = await client.post(url, json=body)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    candidates = data.get("candidates", [])
+                    if candidates and "content" in candidates[0]:
+                        parts = candidates[0]["content"].get("parts", [])
+                        if parts and "text" in parts[0]:
+                            return parts[0]["text"].strip(), None
+                else:
+                    err_msg = resp.text
+                    last_error = f"{model} ({resp.status_code}): {err_msg[:120]}"
+                    if resp.status_code == 429:
+                        await asyncio.sleep(1.0)
+                        continue
+            except Exception as e:
+                last_error = f"{model} connection: {str(e)}"
+                continue
+
+    return None, last_error or "Gemini API call failed"
 
 async def call_groq_api(system_prompt: str, history_messages: List[Dict[str, Any]], query: str) -> Tuple[Optional[str], Optional[str]]:
     """Calls Groq Cloud API (fast Llama 3.3 70B inference)."""
