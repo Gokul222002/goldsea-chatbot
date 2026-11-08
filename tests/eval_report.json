@@ -1,0 +1,848 @@
+{
+  "total_questions": 105,
+  "passed": 0,
+  "failed": 105,
+  "pass_rate_percent": 0.0,
+  "failures": [
+    {
+      "id": "code_01",
+      "category": "coding",
+      "query": "give me the python code for adding cookies to my website",
+      "passed": false,
+      "reason": "Duplicate/template reply (similarity 1.00 with Q#6)",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "code_02",
+      "category": "coding",
+      "query": "give me the python code for pyramid",
+      "passed": false,
+      "reason": "Duplicate/template reply (similarity 1.00 with Q#1)",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "code_03",
+      "category": "coding",
+      "query": "how do I center a div in css with flexbox?",
+      "passed": false,
+      "reason": "Duplicate/template reply (similarity 1.00 with Q#1)",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "code_04",
+      "category": "coding",
+      "query": "write a JavaScript function to debounce an API input call",
+      "passed": false,
+      "reason": "Duplicate/template reply (similarity 1.00 with Q#1)",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "code_05",
+      "category": "coding",
+      "query": "write Python code to reverse a singly linked list",
+      "passed": false,
+      "reason": "Duplicate/template reply (similarity 1.00 with Q#1)",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "code_06",
+      "category": "coding",
+      "query": "how to connect to a PostgreSQL database using asyncpg in Python",
+      "passed": false,
+      "reason": "Duplicate/template reply (similarity 1.00 with Q#1)",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "code_07",
+      "category": "coding",
+      "query": "write a REST API endpoint in FastAPI that accepts a JSON payload and validates with Pydantic",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "code_08",
+      "category": "coding",
+      "query": "debug this python code: def get_evens(nums): return [x for x in nums if x % 2 == 1]",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "code_09",
+      "category": "coding",
+      "query": "write a bash script to find and delete all .log files older than 7 days",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "code_10",
+      "category": "coding",
+      "query": "how do I set an HttpOnly secure SameSite cookie in Express.js?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "math_01",
+      "category": "math",
+      "query": "solve 3x + 15 = 42 for x",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "math_02",
+      "category": "math",
+      "query": "what is the derivative of f(x) = 3x^3 - 5x + 7?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "math_03",
+      "category": "math",
+      "query": "if a shirt costs $80 and is discounted by 25%, what is the final price?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "math_04",
+      "category": "math",
+      "query": "what is the probability of rolling a sum of 7 with two standard 6-sided dice?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "math_05",
+      "category": "math",
+      "query": "calculate the area of a circle with a radius of 6 meters",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "math_06",
+      "category": "math",
+      "query": "what is 17 multiplied by 24?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "math_07",
+      "category": "math",
+      "query": "what is the quadratic formula and when is it used?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "sci_01",
+      "category": "science",
+      "query": "why is the sky blue?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "sci_02",
+      "category": "science",
+      "query": "what is the difference between nuclear fission and nuclear fusion?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "sci_03",
+      "category": "science",
+      "query": "how does photosynthesis work in plants?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "sci_04",
+      "category": "science",
+      "query": "what is CRISPR gene editing and how does it work?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "sci_05",
+      "category": "science",
+      "query": "why does ice float on liquid water?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "sci_06",
+      "category": "science",
+      "query": "what is Newton's third law of motion and give a real-life example",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "sci_07",
+      "category": "science",
+      "query": "how do vaccines create immunity in the human body?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "health_01",
+      "category": "health",
+      "query": "am feeling dizzy should i go to hospital or just sleep",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "health_02",
+      "category": "health",
+      "query": "i have a sudden crushing chest pain radiating to my left arm, what should i do?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "health_03",
+      "category": "health",
+      "query": "my throat hurts and i have a mild fever of 99.5F, what home remedies help?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "health_04",
+      "category": "health",
+      "query": "i twisted my ankle playing basketball and it is swelling, what should i do?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "health_05",
+      "category": "health",
+      "query": "i have had a persistent dry cough for 3 weeks, should i see a doctor?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "health_06",
+      "category": "health",
+      "query": "feeling nausea and stomach cramps after eating street food 2 hours ago",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "health_07",
+      "category": "health",
+      "query": "sharp sudden pain in the lower right abdomen that hurts when walking",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "health_08",
+      "category": "health",
+      "query": "my child has a fever of 103F and is lethargic, what steps should i take?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "emo_01",
+      "category": "emotional",
+      "query": "am sad today",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "emo_02",
+      "category": "emotional",
+      "query": "i feel completely overwhelmed by work and exam pressure",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "emo_03",
+      "category": "emotional",
+      "query": "i just got rejected from my dream job and feel like a failure",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "emo_04",
+      "category": "emotional",
+      "query": "feeling lonely and like nobody cares about me",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "emo_05",
+      "category": "emotional",
+      "query": "i had a big fight with my best friend and don't know what to do",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "emo_06",
+      "category": "emotional",
+      "query": "i feel anxious about tomorrow's presentation and can't fall asleep",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "emo_07",
+      "category": "emotional",
+      "query": "i'm burnt out and feel empty inside",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "food_01",
+      "category": "food",
+      "query": "what should i eat today",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "food_02",
+      "category": "food",
+      "query": "give me 3 quick high-protein breakfast ideas under 10 minutes",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "food_03",
+      "category": "food",
+      "query": "what can i cook with chicken breasts, garlic, and rice?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "food_04",
+      "category": "food",
+      "query": "healthy vegetarian dinner options for weight loss",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "food_05",
+      "category": "food",
+      "query": "recommend 4 easy lunch meal prep recipes for work",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "food_06",
+      "category": "food",
+      "query": "what are good healthy evening snacks to curb sugar cravings?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "food_07",
+      "category": "food",
+      "query": "simple 15-minute pasta recipe using pantry staples",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "career_01",
+      "category": "career",
+      "query": "write a follow-up email after a software engineer job interview",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "career_02",
+      "category": "career",
+      "query": "how should i answer 'what is your greatest weakness' in an interview?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "career_03",
+      "category": "career",
+      "query": "give me bullet points for a senior python developer resume highlighting performance optimization",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "career_04",
+      "category": "career",
+      "query": "how to negotiate a higher salary offer without sounding greedy",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "career_05",
+      "category": "career",
+      "query": "tips for transitioning from junior frontend developer to full stack engineer",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "career_06",
+      "category": "career",
+      "query": "how to prepare for a system design interview in 2 weeks",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "career_07",
+      "category": "career",
+      "query": "review this resume summary: Passionate software engineer with 3 years experience building apps",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "money_01",
+      "category": "money",
+      "query": "how should a 22-year-old start investing $500 a month?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "money_02",
+      "category": "money",
+      "query": "what is the difference between a Roth IRA and a traditional 401k?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "money_03",
+      "category": "money",
+      "query": "how to create a simple monthly budget using the 50/30/20 rule",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "money_04",
+      "category": "money",
+      "query": "is it better to pay off high interest credit card debt or invest first?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "money_05",
+      "category": "money",
+      "query": "what is an emergency fund and how many months of expenses should it cover?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "money_06",
+      "category": "money",
+      "query": "how do index funds work and why do people recommend the S&P 500?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "money_07",
+      "category": "money",
+      "query": "what are the pros and cons of buying vs renting a home in your 20s?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "travel_01",
+      "category": "travel",
+      "query": "give me a 3-day budget itinerary for Tokyo",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "travel_02",
+      "category": "travel",
+      "query": "what are the top 4 things to pack for a week-long hiking trip in the mountains?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "travel_03",
+      "category": "travel",
+      "query": "recommend 3 affordable solo travel destinations in Southeast Asia",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "travel_04",
+      "category": "travel",
+      "query": "how to spend 48 hours in Paris on a moderate budget",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "travel_05",
+      "category": "travel",
+      "query": "essential travel safety tips for first-time international solo travelers",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "travel_06",
+      "category": "travel",
+      "query": "best time of year to visit Switzerland for scenic train rides and hiking",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "travel_07",
+      "category": "travel",
+      "query": "weekend getaway itinerary for a road trip along the California coast",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "gk_01",
+      "category": "general_knowledge",
+      "query": "what is the capital of Australia?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "gk_02",
+      "category": "general_knowledge",
+      "query": "who wrote the novel 1984?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "gk_03",
+      "category": "general_knowledge",
+      "query": "what is the tallest mountain in the world from base to peak?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "gk_04",
+      "category": "general_knowledge",
+      "query": "how many continents are there on Earth and what are they?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "gk_05",
+      "category": "general_knowledge",
+      "query": "which country hosted the 2024 Summer Olympics?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "gk_06",
+      "category": "general_knowledge",
+      "query": "what is the largest desert on Earth?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "gk_07",
+      "category": "general_knowledge",
+      "query": "who invented the World Wide Web and in what year?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "chat_01",
+      "category": "casual_chat",
+      "query": "hi",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "chat_02",
+      "category": "casual_chat",
+      "query": "how are you",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "chat_03",
+      "category": "casual_chat",
+      "query": "good morning",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "chat_04",
+      "category": "casual_chat",
+      "query": "tell me a funny tech joke",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "chat_05",
+      "category": "casual_chat",
+      "query": "what are you doing right now?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "chat_06",
+      "category": "casual_chat",
+      "query": "thank you so much for your help",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "chat_07",
+      "category": "casual_chat",
+      "query": "see you later",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "news_01",
+      "category": "current_events",
+      "query": "what are the latest updates on SpaceX Starship flight tests?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "news_02",
+      "category": "current_events",
+      "query": "who won the most recent Super Bowl?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "news_03",
+      "category": "current_events",
+      "query": "what is the current status of the NASA Artemis moon missions?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "news_04",
+      "category": "current_events",
+      "query": "what are the latest major features released in Python 3.13?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "news_05",
+      "category": "current_events",
+      "query": "what are the key announcements from Google I/O regarding Gemini?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "news_06",
+      "category": "current_events",
+      "query": "current stock price trend of Apple or major tech stocks today",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "writing_01",
+      "category": "writing",
+      "query": "rewrite this sentence to be concise: 'In spite of the fact that it was raining outside, we made a decision to proceed with our journey.'",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "writing_02",
+      "category": "writing",
+      "query": "convert this to active voice: 'The quarterly performance report was submitted by the marketing team yesterday.'",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "writing_03",
+      "category": "writing",
+      "query": "draft a polite message declining an invitation to a networking event due to schedule conflicts",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "writing_04",
+      "category": "writing",
+      "query": "write a short LinkedIn post announcing the completion of a full-stack chatbot project",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "writing_05",
+      "category": "writing",
+      "query": "give me 5 catchy YouTube video title ideas for a video about learning to code in 2025",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "writing_06",
+      "category": "writing",
+      "query": "how to write a strong opening hook for a blog post about artificial intelligence",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "prod_01",
+      "category": "productivity",
+      "query": "create a realistic 1-day study schedule for preparing for an algorithm interview",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "prod_02",
+      "category": "productivity",
+      "query": "how can i stop procrastinating when starting large coding projects?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "prod_03",
+      "category": "productivity",
+      "query": "what is the Pomodoro technique and how to use it effectively?",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "prod_04",
+      "category": "productivity",
+      "query": "give me a daily morning routine for maximizing energy and focus as a remote developer",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "prod_05",
+      "category": "productivity",
+      "query": "how to organize my daily tasks using the Eisenhower Matrix",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "prod_06",
+      "category": "productivity",
+      "query": "give me a 4-week workout routine for a beginner looking to build upper body strength",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "messy_01",
+      "category": "messy_typo",
+      "query": "pythn loop arr",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "messy_02",
+      "category": "messy_typo",
+      "query": "cant slp advice",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "messy_03",
+      "category": "messy_typo",
+      "query": "mak me a diet plan",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "messy_04",
+      "category": "messy_typo",
+      "query": "wat is docker in 1 line",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "messy_05",
+      "category": "messy_typo",
+      "query": "headache cant see clearly",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    },
+    {
+      "id": "messy_06",
+      "category": "messy_typo",
+      "query": "calc 15% tip on 85 bill",
+      "passed": false,
+      "reason": "Endpoint returned system error: Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables",
+      "reply": "Error: NO_API_KEY_CONFIGURED: Please set GEMINI_API_KEY (or GROQ_API_KEY / OPENAI_API_KEY) in your environment variables or Render dashboard."
+    }
+  ]
+}

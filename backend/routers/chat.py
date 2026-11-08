@@ -56,7 +56,7 @@ async def chat_endpoint(request: ChatRequest):
         "content": result["text"],
         "follow_up_chips": result["follow_up_chips"],
         "sources": result["sources"],
-        "error": False
+        "error": result.get("error", False)
     }
 
 @router.post("/stream")
