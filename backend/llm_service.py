@@ -95,7 +95,7 @@ def execute_fallback_brain(query: str, memories: List[Dict[str, Any]], sources: 
             "I'm right here with you. Would you like to talk through what is making you feel this way?\n\n"
             "<<<SUGGESTIONS>>>\n[\"I just want to vent\", \"Help me calm down\", \"Give me a distraction\"]\n<<<END_SUGGESTIONS>>>"
         )
-    if any(k in q_lower for k in ["i'm sad", "i feel sad", "i am sad", "i'm stressed", "i am stressed", "feeling stressed", "overwhelmed", "anxious", "depressed", "i feel down", "bad day"]):
+    if any(k in q_lower for k in ["sad", "stressed", "stress", "depressed", "overwhelmed", "anxious", "anxiety", "bad day", "lonely", "exhausted", "burnout", "burned out"]):
         return (
             "I'm really sorry to hear that you're feeling this way, Gokul. Dealing with stress or sadness can feel heavy, and it's completely okay to take a pause.\n\n"
             "What happened today that brought this on? If you want to decompress right now, here are a few gentle things you could try:\n"
