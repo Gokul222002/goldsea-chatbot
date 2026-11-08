@@ -4,8 +4,8 @@
   "description": "Precision-engineered, genuinely helpful personal AI assistant for Gokul",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#090d16",
-  "theme_color": "#f59e0b",
+  "background_color": "#060d09",
+  "theme_color": "#22c55e",
   "icons": [
     {
       "src": "/static/icons/icon-192.png",

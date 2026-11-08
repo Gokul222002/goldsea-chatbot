@@ -180,12 +180,12 @@
       const isActive = conv.id === currentConversationId;
       const item = document.createElement('div');
       item.className = `group flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors ${
-        isActive ? 'bg-gold-500/10 text-gold-400 font-medium border border-gold-500/20' : 'text-slate-300 hover:bg-white/5'
+        isActive ? 'bg-spider-500/10 text-spider-400 font-medium border border-spider-500/20' : 'text-slate-300 hover:bg-white/5'
       }`;
 
       item.innerHTML = `
         <div class="flex items-center gap-2 truncate flex-1 mr-2" data-conv-id="${conv.id}">
-          <i data-lucide="message-square" class="w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-gold-400' : 'text-slate-400'}"></i>
+          <i data-lucide="message-square" class="w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-spider-400' : 'text-slate-400'}"></i>
           <span class="truncate">${escapeHtml(conv.title)}</span>
         </div>
         <div class="opacity-0 group-hover:opacity-100 flex items-center gap-1">
@@ -293,7 +293,7 @@
 
     if (isUser) {
       card.innerHTML = `
-        <div class="max-w-[85%] sm:max-w-xl rounded-2xl rounded-tr-sm bg-gradient-to-r from-amber-500/20 to-gold-500/20 border border-gold-500/30 p-3.5 text-xs sm:text-sm text-slate-100 shadow-sm leading-relaxed whitespace-pre-wrap">
+        <div class="max-w-[85%] sm:max-w-xl rounded-2xl rounded-tr-sm bg-gradient-to-r from-emerald-600/20 to-spider-500/20 border border-spider-500/30 p-3.5 text-xs sm:text-sm text-slate-100 shadow-sm leading-relaxed whitespace-pre-wrap">
           ${escapeHtml(msg.content)}
         </div>
       `;
@@ -324,8 +324,8 @@
       let chipsHtml = '';
       if (msg.follow_up_chips && msg.follow_up_chips.length > 0) {
         const chipsList = msg.follow_up_chips.map(chip => `
-          <button class="follow-up-chip px-3 py-1.5 rounded-full bg-dark-850 hover:bg-dark-800 border border-gold-500/30 hover:border-gold-500/60 text-gold-400 hover:text-gold-300 text-xs font-medium transition-all text-left shadow-sm active:scale-95 flex items-center gap-1.5">
-            <i data-lucide="arrow-right" class="w-3 h-3"></i>
+          <button class="follow-up-chip px-3 py-1.5 rounded-full bg-dark-850 hover:bg-dark-800 border border-spider-500/30 hover:border-spider-400/60 text-spider-400 hover:text-spider-300 text-xs font-medium transition-all text-left shadow-sm active:scale-95 flex items-center gap-1.5">
+            <i data-lucide="arrow-right" class="w-3 h-3 text-spider-400"></i>
             <span>${escapeHtml(chip)}</span>
           </button>
         `).join('');
@@ -340,15 +340,15 @@
       // Per-reply Action Buttons (Regenerate, Make shorter, Make more detailed, Copy)
       const actionsBarHtml = `
         <div class="mt-2.5 flex items-center gap-1 text-[11px] text-slate-400 border-t border-white/5 pt-2">
-          <button class="per-reply-btn hover:text-gold-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="regenerate" data-msg-id="${msg.id}" title="Regenerate this response">
+          <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="regenerate" data-msg-id="${msg.id}" title="Regenerate this response">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
             <span class="hidden sm:inline">Regenerate</span>
           </button>
-          <button class="per-reply-btn hover:text-gold-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="shorter" data-msg-id="${msg.id}" title="Make shorter">
+          <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="shorter" data-msg-id="${msg.id}" title="Make shorter">
             <i data-lucide="minimize-2" class="w-3.5 h-3.5"></i>
             <span class="hidden sm:inline">Make shorter</span>
           </button>
-          <button class="per-reply-btn hover:text-gold-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="detailed" data-msg-id="${msg.id}" title="Make more detailed">
+          <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="detailed" data-msg-id="${msg.id}" title="Make more detailed">
             <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
             <span class="hidden sm:inline">Make more detailed</span>
           </button>
@@ -360,7 +360,11 @@
       `;
 
       card.innerHTML = `
-        <div class="max-w-[95%] sm:max-w-2xl rounded-2xl rounded-tl-sm bg-dark-900 border border-white/5 p-4 shadow-md w-full">
+        <div class="max-w-[95%] sm:max-w-2xl rounded-2xl rounded-tl-sm bg-dark-900 border border-spider-500/15 p-4 shadow-md w-full">
+          <div class="flex items-center gap-2 mb-2.5 pb-2 border-b border-spider-500/10">
+            <img src="/static/images/spider-avatar.png" alt="Spider Avatar" class="w-5 h-5 rounded-full spider-avatar object-cover">
+            <span class="text-xs font-semibold text-spider-400">GoldSea AI</span>
+          </div>
           <div class="prose max-w-none text-slate-200">
             ${formattedHtml}
           </div>
@@ -459,10 +463,14 @@
     assistantCard.id = `msg-${assistantMsgId}`;
     assistantCard.className = 'flex flex-col items-start space-y-1.5 w-full';
     assistantCard.innerHTML = `
-      <div class="max-w-[95%] sm:max-w-2xl rounded-2xl rounded-tl-sm bg-dark-900 border border-white/5 p-4 shadow-md w-full">
+      <div class="max-w-[95%] sm:max-w-2xl rounded-2xl rounded-tl-sm bg-dark-900 border border-spider-500/15 p-4 shadow-md w-full">
+        <div class="flex items-center gap-2 mb-2.5 pb-2 border-b border-spider-500/10">
+          <img src="/static/images/spider-avatar.png" alt="Spider Avatar" class="w-5 h-5 rounded-full spider-avatar object-cover animate-pulse">
+          <span class="text-xs font-semibold text-spider-400">GoldSea AI</span>
+        </div>
         <div class="prose max-w-none text-slate-200" id="stream-content-${assistantMsgId}">
           <div class="flex items-center gap-2 text-slate-400 text-xs py-1">
-            <span class="w-2 h-2 rounded-full bg-gold-400 animate-ping"></span>
+            <span class="w-2 h-2 rounded-full bg-spider-400 animate-ping"></span>
             <span>Thinking and verifying...</span>
           </div>
         </div>
