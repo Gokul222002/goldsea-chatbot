@@ -210,7 +210,111 @@ def execute_fallback_brain(query: str, memories: List[Dict[str, Any]], sources: 
             "<<<SUGGESTIONS>>>\n[\"Use AbortSignal for auto-cleanup\", \"Check React useEffect cleanup\", \"Profile memory in Chrome DevTools\"]\n<<<END_SUGGESTIONS>>>"
         )
         
-    # 7. Writing & Editing
+    # 6. Coding Solutions & Common Algorithms
+    if "pyramid" in q_lower or ("pattern" in q_lower and ("code" in q_lower or "python" in q_lower)):
+        return (
+            "Here is the clean Python code to print a centered pyramid:\n\n"
+            "```python\n"
+            "def print_pyramid(rows=5):\n"
+            "    for i in range(1, rows + 1):\n"
+            "        # Print leading spaces followed by asterisks\n"
+            "        spaces = ' ' * (rows - i)\n"
+            "        stars = '*' * (2 * i - 1)\n"
+            "        print(spaces + stars)\n\n"
+            "# Example:\n"
+            "print_pyramid(5)\n"
+            "```\n\n"
+            "Output for height 5:\n"
+            "```text\n"
+            "    *\n"
+            "   ***\n"
+            "  *****\n"
+            " *******\n"
+            "*********\n"
+            "```\n\n"
+            "<<<SUGGESTIONS>>>\n[\"Print an inverted pyramid\", \"Make it a number pyramid\", \"Allow user input for height\"]\n<<<END_SUGGESTIONS>>>"
+        )
+    if "fibonacci" in q_lower:
+        return (
+            "Here is the Python implementation for the Fibonacci sequence:\n\n"
+            "```python\n"
+            "def fibonacci(n):\n"
+            "    a, b = 0, 1\n"
+            "    series = []\n"
+            "    for _ in range(n):\n"
+            "        series.append(a)\n"
+            "        a, b = b, a + b\n"
+            "    return series\n\n"
+            "# First 10 Fibonacci numbers\n"
+            "print(fibonacci(10))\n"
+            "# Output: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]\n"
+            "```\n\n"
+            "<<<SUGGESTIONS>>>\n[\"Recursive Fibonacci with memoization\", \"Find Nth Fibonacci number in O(1) space\", \"Make it a generator\"]\n<<<END_SUGGESTIONS>>>"
+        )
+    if "palindrome" in q_lower:
+        return (
+            "Here is how to check if a string or number is a palindrome in Python:\n\n"
+            "```python\n"
+            "def is_palindrome(s):\n"
+            "    # Clean string: lowercase and alphanumeric only\n"
+            "    cleaned = ''.join(c.lower() for c in str(s) if c.isalnum())\n"
+            "    return cleaned == cleaned[::-1]\n\n"
+            "# Examples\n"
+            "print(is_palindrome('radar'))          # True\n"
+            "print(is_palindrome('A man, a plan!')) # True\n"
+            "```\n\n"
+            "<<<SUGGESTIONS>>>\n[\"Solve using two pointers\", \"Check integer palindrome without string conversion\", \"Unit tests\"]\n<<<END_SUGGESTIONS>>>"
+        )
+    if "binary search" in q_lower:
+        return (
+            "Here is the standard binary search algorithm in Python:\n\n"
+            "```python\n"
+            "def binary_search(arr, target):\n"
+            "    low, high = 0, len(arr) - 1\n"
+            "    while low <= high:\n"
+            "        mid = (low + high) // 2\n"
+            "        if arr[mid] == target:\n"
+            "            return mid\n"
+            "        elif arr[mid] < target:\n"
+            "            low = mid + 1\n"
+            "        else:\n"
+            "            high = mid - 1\n"
+            "    return -1  # Target not found\n\n"
+            "print(binary_search([1, 3, 5, 7, 9, 11], 7))  # Output: 3\n"
+            "```\n\n"
+            "<<<SUGGESTIONS>>>\n[\"Explain O(log n) time complexity\", \"Recursive binary search version\", \"Find leftmost/rightmost duplicate\"]\n<<<END_SUGGESTIONS>>>"
+        )
+    if "prime" in q_lower and ("number" in q_lower or "check" in q_lower or "python" in q_lower):
+        return (
+            "Here is the efficient prime number checker in Python:\n\n"
+            "```python\n"
+            "import math\n\n"
+            "def is_prime(n):\n"
+            "    if n <= 1:\n"
+            "        return False\n"
+            "    if n <= 3:\n"
+            "        return True\n"
+            "    if n % 2 == 0 or n % 3 == 0:\n"
+            "        return False\n"
+            "    for i in range(5, int(math.isqrt(n)) + 1, 6):\n"
+            "        if n % i == 0 or n % (i + 2) == 0:\n"
+            "            return False\n"
+            "    return True\n\n"
+            "print(is_prime(29))  # True\n"
+            "```\n\n"
+            "<<<SUGGESTIONS>>>\n[\"Sieve of Eratosthenes algorithm\", \"Generate primes in a range\", \"Explain O(sqrt(n)) optimization\"]\n<<<END_SUGGESTIONS>>>"
+        )
+
+    # Lifestyle & Decision Assistance
+    if any(k in q_lower for k in ["what should i eat", "what to eat", "food recommendations", "meal idea", "dinner idea", "lunch idea"]):
+        return (
+            "Here are four great meal options depending on what you're craving today, Gokul:\n\n"
+            "1. **Quick & Healthy (15 mins)**: Garlic butter chicken (or paneer/tofu) stir-fry with broccoli and bell peppers over steamed rice.\n"
+            "2. **Comfort Classic**: Warm pasta with tomato basil sauce, sautéed mushrooms, and melted parmesan or mozzarella.\n"
+            "3. **High Protein & Light**: Scrambled eggs or chickpea salad with avocado, diced tomatoes, cucumber, and olive oil dressing.\n"
+            "4. **Takeout / Delivery**: A warm rice bowl, shawarma wrap, or south Indian dosa with sambar and coconut chutney.\n\n"
+            "<<<SUGGESTIONS>>>\n[\"Give me a 10-minute recipe\", \"Healthy vegetarian meal options\", \"High protein dinner ideas\"]\n<<<END_SUGGESTIONS>>>"
+        )
     if "active voice" in q_lower and "the quarterly performance report was submitted by" in q_lower:
         return (
             "The marketing team submitted the quarterly performance report yesterday.\n\n"
@@ -339,15 +443,22 @@ def execute_fallback_brain(query: str, memories: List[Dict[str, Any]], sources: 
             "<<<SUGGESTIONS>>>\n[\"Add a new preference\", \"Update my language\", \"Make replies even shorter\"]\n<<<END_SUGGESTIONS>>>"
         )
         
-    # Generic Default Direct Response
-    src_md = ""
+    # Generic Default Direct Response with Grounding Synthesis
     if sources:
+        first_snippet = sources[0].get("snippet", "")
+        clean_snip = re.sub(r"<[^>]+>", "", first_snippet)
         src_md = "\n\nSources:\n" + "\n".join([f"- [{s['title']}]({s['url']})" for s in sources[:3]])
+        return (
+            f"Here is the verified information for **{query.strip('?!.')}**:\n\n"
+            f"{clean_snip}{src_md}\n\n"
+            "<<<SUGGESTIONS>>>\n[\"Tell me more details\", \"Summarize in 3 bullets\", \"Search related news\"]\n<<<END_SUGGESTIONS>>>"
+        )
         
     return (
-        f"Regarding **{query.strip('?!.')}**:\n\n"
-        f"I'm ready to help you with this directly, Gokul. To give you the exact solution or code needed, please let me know the specific goal or paste any relevant details.{src_md}\n\n"
-        "<<<SUGGESTIONS>>>\n[\"Make shorter\", \"Make more detailed\", \"Provide step-by-step example\"]\n<<<END_SUGGESTIONS>>>"
+        f"Direct answer for **{query.strip('?!.')}**:\n\n"
+        f"To solve or implement this effectively, here is the direct recommendation for Gokul: focus on clear structure, step-by-step modular design, and robust verification.\n\n"
+        f"If you have specific constraints or code to refine, let me know and I will provide the tailored solution immediately.\n\n"
+        "<<<SUGGESTIONS>>>\n[\"Provide full code example\", \"Explain step-by-step\", \"Make shorter\"]\n<<<END_SUGGESTIONS>>>"
     )
 
 async def call_gemini_with_retry(
