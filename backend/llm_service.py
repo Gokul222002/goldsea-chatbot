@@ -58,6 +58,33 @@ def execute_fallback_brain(query: str, memories: List[Dict[str, Any]], sources: 
     q = query.strip()
     q_lower = q.lower()
     
+    # 0. Conversational Greetings & Casual Inquiries
+    if any(g == q_lower.strip("?!. ") for g in ["hi", "hello", "hey", "greetings", "good morning", "good evening", "good afternoon"]):
+        return (
+            "Hello Gokul! How can I assist you today? Feel free to ask a direct question, paste code to debug, or have me plan or summarize something for you.\n\n"
+            "<<<SUGGESTIONS>>>\n[\"Debug my code\", \"Plan my day\", \"Summarize an article\"]\n<<<END_SUGGESTIONS>>>"
+        )
+    if any(q_lower.strip("?!. ").startswith(h) for h in ["how are you", "how're you", "how are you doing", "how are things", "how is it going", "what's up", "whats up"]):
+        return (
+            "I'm doing great and running smoothly, Gokul! Ready to assist you. What are you working on right now?\n\n"
+            "<<<SUGGESTIONS>>>\n[\"Help me debug code\", \"Explain a concept\", \"Draft an email\"]\n<<<END_SUGGESTIONS>>>"
+        )
+    if "who are you" in q_lower or "what are you" in q_lower:
+        return (
+            "I am GoldSea AI, your personal AI assistant. I'm engineered to give you direct answers first, step-by-step how-tos, verified facts with live web search, and remember your preferences across conversations.\n\n"
+            "<<<SUGGESTIONS>>>\n[\"What can you do?\", \"Show my saved preferences\", \"Test live web search\"]\n<<<END_SUGGESTIONS>>>"
+        )
+    if "what can you do" in q_lower or "capabilities" in q_lower or "help me with" in q_lower:
+        return (
+            "Here is what I can do for you, Gokul:\n\n"
+            "1. Coding & Debugging: Diagnose bugs, refactor code, and provide working language-tagged snippets.\n"
+            "2. Live Web Grounding: Automatically search current news, prices, versions, and verified facts.\n"
+            "3. Writing & Editing: Polish grammar, draft emails, and rewrite content in active voice.\n"
+            "4. Summarization: Condense articles, logs, or long documents into punchy takeaways.\n"
+            "5. Adaptive Memory: Automatically recall your preferences, tone, and identity across all your chats.\n\n"
+            "<<<SUGGESTIONS>>>\n[\"Debug Python code\", \"Plan a daily schedule\", \"Search recent tech news\"]\n<<<END_SUGGESTIONS>>>"
+        )
+
     # 1. Prompt Injection Defenses
     if any(k in q_lower for k in [
         "system override", "reveal your secret prompt", "ignore all previous instructions", 
@@ -318,8 +345,8 @@ def execute_fallback_brain(query: str, memories: List[Dict[str, Any]], sources: 
         src_md = "\n\nSources:\n" + "\n".join([f"- [{s['title']}]({s['url']})" for s in sources[:3]])
         
     return (
-        f"Gokul, here is the direct answer for: '{query}'.\n\n"
-        f"I have addressed your request directly. Let me know if you would like me to adjust the depth or provide specific implementation details.{src_md}\n\n"
+        f"Regarding **{query.strip('?!.')}**:\n\n"
+        f"I'm ready to help you with this directly, Gokul. To give you the exact solution or code needed, please let me know the specific goal or paste any relevant details.{src_md}\n\n"
         "<<<SUGGESTIONS>>>\n[\"Make shorter\", \"Make more detailed\", \"Provide step-by-step example\"]\n<<<END_SUGGESTIONS>>>"
     )
 
