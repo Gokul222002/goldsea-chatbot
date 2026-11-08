@@ -11,9 +11,15 @@ try:
 except ImportError:
     pass
 
-PORT = int(os.environ.get("PORT", 8080))
-HOST = os.environ.get("HOST", "0.0.0.0")
-ENVIRONMENT = os.environ.get("ENVIRONMENT", "production")
+def get_port() -> int:
+    raw = os.environ.get("PORT", "").strip()
+    if raw.isdigit():
+        return int(raw)
+    return 8080
+
+PORT = get_port()
+HOST = os.environ.get("HOST", "0.0.0.0").strip() or "0.0.0.0"
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "production").strip() or "production"
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", os.environ.get("GOOGLE_API_KEY", "")).strip()
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3-flash-preview").strip()
