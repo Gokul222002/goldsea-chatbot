@@ -6,11 +6,18 @@ import sys
 import httpx
 import pytest
 from pathlib import Path
+from backend.main import app
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 EVAL_PROMPTS_PATH = BASE_DIR / "backend" / "tests" / "eval_prompts.json"
 
-TARGET_URL = os.environ.get("TEST_TARGET_URL", "http://127.0.0.1:8080")
+TARGET_URL = os.environ.get("TEST_TARGET_URL")
+
+def get_test_client():
+    if TARGET_URL:
+        return httpx.AsyncClient(base_url=TARGET_URL, timeout=30.0)
+    transport = httpx.ASGITransport(app=app)
+    return httpx.AsyncClient(transport=transport, base_url="http://test", timeout=45.0)
 
 def load_eval_prompts():
     with open(EVAL_PROMPTS_PATH, "r", encoding="utf-8") as f:
@@ -83,7 +90,7 @@ async def test_all_30_acceptance_prompts():
     
     results = []
     
-    async with httpx.AsyncClient(base_url=TARGET_URL, timeout=25.0) as client:
+    async with get_test_client() as client:
         # Check health
         health = await client.get("/health")
         assert health.status_code == 200, "Backend health check failed"
@@ -121,7 +128,7 @@ async def test_all_30_acceptance_prompts():
 @pytest.mark.asyncio
 async def test_cross_chat_memory():
     """Tells bot user name and preference in Chat A, verifies in Chat B."""
-    async with httpx.AsyncClient(base_url=TARGET_URL, timeout=15.0) as client:
+    async with get_test_client() as client:
         # Chat A: Establish memory
         res_a = await client.post("/api/chat", json={
             "message": "My name is Gokul and my preference is writing concise Python code."
@@ -143,7 +150,7 @@ async def test_cross_chat_memory():
 @pytest.mark.asyncio
 async def test_sse_streaming():
     """Verifies Server-Sent Events (SSE) streaming on /api/chat/stream."""
-    async with httpx.AsyncClient(base_url=TARGET_URL, timeout=20.0) as client:
+    async with get_test_client() as client:
         tokens_received = []
         async with client.stream("POST", "/api/chat/stream", json={"message": "What is 2 + 2?"}) as response:
             assert response.status_code == 200
@@ -160,7 +167,7 @@ async def test_sse_streaming():
 @pytest.mark.asyncio
 async def test_export_and_mobile_assets():
     """Verifies conversation export and mobile PWA assets."""
-    async with httpx.AsyncClient(base_url=TARGET_URL, timeout=15.0) as client:
+    async with get_test_client() as client:
         # Create conversation
         res = await client.post("/api/chat", json={"message": "Test export message."})
         assert res.status_code == 200

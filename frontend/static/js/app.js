@@ -7,9 +7,17 @@
   let conversations = [];
   let isStreaming = false;
   let currentAbortController = null;
-  let attachedFile = null; // { name: string, content: string }
+  
+  // Attachments state (multiple files & images)
+  let attachedFiles = []; // Array of { name, type, mime_type, size, data, preview, extracted_text, page_images, page_count }
+
+  // Voice / Mic State
   let recognition = null;
+  let mediaRecorder = null;
+  let audioChunks = [];
   let isRecording = false;
+  let micState = 'idle'; // 'idle' | 'requesting' | 'listening' | 'processing'
+  let silenceTimer = null;
   let deferredPrompt = null;
 
   // DOM Elements
@@ -30,13 +38,17 @@
   const openSidebarBtn = document.getElementById('open-sidebar-btn');
   const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 
-  // Attachment & Voice
+  // Attachment & Voice Elements
   const fileInput = document.getElementById('file-input');
   const attachFileBtn = document.getElementById('attach-file-btn');
-  const attachmentPreview = document.getElementById('attachment-preview');
-  const attachmentName = document.getElementById('attachment-name');
-  const removeAttachmentBtn = document.getElementById('remove-attachment-btn');
+  const attachmentsContainer = document.getElementById('attachments-container');
   const voiceInputBtn = document.getElementById('voice-input-btn');
+  const micStatusDot = document.getElementById('mic-status-dot');
+  const dropZoneOverlay = document.getElementById('drop-zone-overlay');
+  const imageModal = document.getElementById('image-modal');
+  const enlargedImage = document.getElementById('enlarged-image');
+  const closeImageModalBtn = document.getElementById('close-image-modal-btn');
+  const toastContainer = document.getElementById('toast-container');
 
   // Modals
   const shortcutsModal = document.getElementById('shortcuts-modal');
@@ -45,15 +57,49 @@
   const exportModal = document.getElementById('export-modal');
   const exportChatBtn = document.getElementById('export-chat-btn');
   const closeExportBtn = document.getElementById('close-export-btn');
-  const openQuickActionsBtn = document.getElementById('open-quick-actions-btn');
   const pwaInstallBtn = document.getElementById('pwa-install-btn');
 
-  // Initialize
+  // Format bytes helper
+  function formatBytes(bytes, decimals = 1) {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  }
+
+  // Toast Notification helper
+  function showToast(message, type = 'info') {
+    if (!toastContainer) return;
+    const toast = document.createElement('div');
+    const isErr = type === 'error';
+    toast.className = `toast-msg flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl text-xs font-medium border ${
+      isErr 
+        ? 'bg-rose-950/90 text-rose-200 border-rose-500/40' 
+        : 'bg-dark-900/90 text-slate-200 border-spider-500/40'
+    }`;
+    toast.innerHTML = `
+      <i data-lucide="${isErr ? 'alert-triangle' : 'info'}" class="w-4 h-4 ${isErr ? 'text-rose-400' : 'text-spider-400'} shrink-0"></i>
+      <span class="flex-1">${escapeHtml(message)}</span>
+      <button class="text-slate-400 hover:text-white ml-1 text-sm leading-none">&times;</button>
+    `;
+    const closeBtn = toast.querySelector('button');
+    closeBtn.addEventListener('click', () => toast.remove());
+    toastContainer.appendChild(toast);
+    initLucide();
+    setTimeout(() => {
+      if (toast.parentElement) toast.remove();
+    }, 5000);
+  }
+
+  // Initialize Application
   async function init() {
     initLucide();
     initSpeechRecognition();
     initServiceWorker();
     setupEventListeners();
+    setupDragAndDropAndPaste();
     await loadConversations();
     if (currentConversationId) {
       await loadConversationMessages(currentConversationId);
@@ -68,89 +114,406 @@
     }
   }
 
-  // --- Speech Recognition ---
+  // --- Voice / Speech Recognition Engine ---
   function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
-      recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
+      try {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
 
-      recognition.onstart = () => {
-        isRecording = true;
-        voiceInputBtn.classList.add('recording-active');
-      };
+        let baseInputText = '';
 
-      recognition.onresult = (event) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          transcript += event.results[i][0].transcript;
-        }
-        chatInput.value = transcript;
-        updateSendButtonState();
-        autoResizeInput();
-      };
+        recognition.onstart = () => {
+          setMicState('listening');
+          baseInputText = chatInput.value ? (chatInput.value.trimEnd() + ' ') : '';
+          resetSilenceTimer();
+        };
 
-      recognition.onerror = () => {
+        recognition.onresult = (event) => {
+          resetSilenceTimer();
+          let interimText = '';
+          let finalText = '';
+
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalText += transcript;
+            } else {
+              interimText += transcript;
+            }
+          }
+
+          if (finalText) {
+            baseInputText += finalText + ' ';
+          }
+          chatInput.value = baseInputText + interimText;
+          updateSendButtonState();
+          autoResizeInput();
+        };
+
+        recognition.onerror = (event) => {
+          clearTimeout(silenceTimer);
+          setMicState('idle');
+          if (event.error === 'not-allowed') {
+            showToast('Microphone access denied. Please grant microphone permissions in browser settings.', 'error');
+          } else if (event.error === 'no-speech') {
+            // benign
+          } else if (event.error === 'audio-capture') {
+            showToast('No microphone found on your device.', 'error');
+          } else if (event.error === 'network') {
+            // Cloud speech recognition network error -> fall back to MediaRecorder
+            startMediaRecorderFallback();
+          }
+        };
+
+        recognition.onend = () => {
+          clearTimeout(silenceTimer);
+          setMicState('idle');
+        };
+      } catch (e) {
+        recognition = null;
+      }
+    }
+  }
+
+  function resetSilenceTimer() {
+    clearTimeout(silenceTimer);
+    silenceTimer = setTimeout(() => {
+      if (isRecording) {
         stopRecording();
-      };
+      }
+    }, 3500); // 3.5s auto-stop on silence
+  }
 
-      recognition.onend = () => {
-        stopRecording();
-      };
+  function setMicState(state) {
+    micState = state;
+    isRecording = (state === 'listening' || state === 'requesting');
+
+    voiceInputBtn.classList.remove('recording-active', 'recording-requesting', 'recording-processing');
+    if (micStatusDot) micStatusDot.classList.add('hidden');
+
+    if (state === 'listening') {
+      voiceInputBtn.classList.add('recording-active');
+      if (micStatusDot) micStatusDot.classList.remove('hidden');
+      voiceInputBtn.title = "Listening... Tap to stop";
+    } else if (state === 'requesting') {
+      voiceInputBtn.classList.add('recording-requesting');
+      voiceInputBtn.title = "Requesting microphone permission...";
+    } else if (state === 'processing') {
+      voiceInputBtn.classList.add('recording-processing');
+      voiceInputBtn.title = "Transcribing audio...";
     } else {
-      voiceInputBtn.style.display = 'none';
+      voiceInputBtn.title = "Voice Input (Speech-to-Text)";
     }
   }
 
   function toggleRecording() {
-    if (!recognition) return;
     if (isRecording) {
-      recognition.stop();
       stopRecording();
     } else {
+      startRecording();
+    }
+  }
+
+  function startRecording() {
+    if (recognition) {
       try {
+        setMicState('requesting');
         recognition.start();
       } catch (err) {
-        stopRecording();
+        startMediaRecorderFallback();
       }
+    } else {
+      startMediaRecorderFallback();
     }
   }
 
   function stopRecording() {
-    isRecording = false;
-    voiceInputBtn.classList.remove('recording-active');
+    clearTimeout(silenceTimer);
+    if (recognition) {
+      try { recognition.stop(); } catch (e) {}
+    }
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      try { mediaRecorder.stop(); } catch (e) {}
+    }
+    setMicState('idle');
   }
 
-  // --- PWA Service Worker ---
-  function initServiceWorker() {
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
-      });
+  async function startMediaRecorderFallback() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showToast('Audio recording is not supported in this browser.', 'error');
+      setMicState('idle');
+      return;
     }
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      if (pwaInstallBtn) {
-        pwaInstallBtn.classList.remove('hidden');
+    try {
+      setMicState('requesting');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      const options = MediaRecorder.isTypeSupported('audio/webm') ? { mimeType: 'audio/webm' } : {};
+      mediaRecorder = new MediaRecorder(stream, options);
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstart = () => {
+        setMicState('listening');
+      };
+
+      mediaRecorder.onstop = async () => {
+        setMicState('processing');
+        stream.getTracks().forEach(track => track.stop());
+
+        const mimeType = mediaRecorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunks, { type: mimeType });
+
+        if (audioBlob.size > 1000) {
+          try {
+            const formData = new FormData();
+            formData.append('file', audioBlob, 'recording.webm');
+            const res = await fetch('/api/chat/transcribe', {
+              method: 'POST',
+              body: formData
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.text) {
+                const current = chatInput.value ? (chatInput.value.trimEnd() + ' ') : '';
+                chatInput.value = current + data.text;
+                updateSendButtonState();
+                autoResizeInput();
+                chatInput.focus();
+              }
+            } else {
+              const err = await res.json().catch(() => ({}));
+              showToast(err.detail || 'Voice transcription failed.', 'error');
+            }
+          } catch (e) {
+            showToast('Transcription server connection failed.', 'error');
+          }
+        }
+        setMicState('idle');
+      };
+
+      mediaRecorder.start();
+    } catch (err) {
+      setMicState('idle');
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        showToast('Microphone permission denied. Please allow microphone access in site settings.', 'error');
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        showToast('No microphone found on your system.', 'error');
+      } else {
+        showToast('Microphone error: ' + err.message, 'error');
+      }
+    }
+  }
+
+  // --- Attachments & Drag-and-Drop / Paste ---
+  function setupDragAndDropAndPaste() {
+    // Paste from clipboard (images, screenshots, files)
+    window.addEventListener('paste', (e) => {
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+
+      const files = [];
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].kind === 'file') {
+          const file = items[i].getAsFile();
+          if (file) files.push(file);
+        }
+      }
+      if (files.length > 0) {
+        handleFilesUpload(files);
       }
     });
 
-    if (pwaInstallBtn) {
-      pwaInstallBtn.addEventListener('click', async () => {
-        if (deferredPrompt) {
-          deferredPrompt.prompt();
-          const { outcome } = await deferredPrompt.userChoice;
-          if (outcome === 'accepted') {
-            pwaInstallBtn.classList.add('hidden');
-          }
-          deferredPrompt = null;
-        }
+    // Drag and drop overlay
+    let dragCounter = 0;
+    window.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      dragCounter++;
+      if (dropZoneOverlay) dropZoneOverlay.classList.remove('hidden');
+    });
+
+    window.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dragCounter--;
+      if (dragCounter <= 0 && dropZoneOverlay) {
+        dragCounter = 0;
+        dropZoneOverlay.classList.add('hidden');
+      }
+    });
+
+    window.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dragCounter = 0;
+      if (dropZoneOverlay) dropZoneOverlay.classList.add('hidden');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleFilesUpload(Array.from(e.dataTransfer.files));
+      }
+    });
+
+    // Lightbox modal close
+    if (closeImageModalBtn) {
+      closeImageModalBtn.addEventListener('click', () => {
+        if (imageModal) imageModal.classList.add('hidden');
       });
     }
+    if (imageModal) {
+      imageModal.addEventListener('click', (e) => {
+        if (e.target === imageModal) imageModal.classList.add('hidden');
+      });
+    }
+  }
+
+  // Window global function for image modal zoom
+  window.openImageModal = function(src) {
+    if (enlargedImage && imageModal) {
+      enlargedImage.src = src;
+      imageModal.classList.remove('hidden');
+    }
+  };
+
+  async function handleFilesUpload(fileList) {
+    if (!fileList || fileList.length === 0) return;
+
+    for (const file of fileList) {
+      if (file.size > 25 * 1024 * 1024) {
+        showToast(`File "${file.name}" exceeds the 25MB limit.`, 'error');
+        continue;
+      }
+
+      const tempId = 'up_' + Date.now() + Math.random().toString(36).substring(2, 6);
+      renderUploadProgressCard(tempId, file.name);
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/chat/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({ detail: 'Upload failed' }));
+          throw new Error(errData.detail || `Upload failed with status ${res.status}`);
+        }
+
+        const data = await res.json();
+        removeUploadProgressCard(tempId);
+        attachedFiles.push(data);
+        renderAttachmentsPreview();
+        updateSendButtonState();
+      } catch (err) {
+        removeUploadProgressCard(tempId);
+        showToast(`Error uploading "${file.name}": ${err.message}`, 'error');
+      }
+    }
+  }
+
+  function renderUploadProgressCard(tempId, filename) {
+    if (!attachmentsContainer) return;
+    attachmentsContainer.classList.remove('hidden');
+    const card = document.createElement('div');
+    card.id = `temp-upload-${tempId}`;
+    card.className = "inline-flex items-center gap-2 bg-dark-800 border border-spider-500/20 px-3 py-1.5 rounded-xl text-xs text-slate-300 animate-pulse";
+    card.innerHTML = `
+      <span class="w-2.5 h-2.5 rounded-full bg-spider-400 animate-ping"></span>
+      <span class="font-mono text-[11px] truncate max-w-[120px]">${escapeHtml(filename)}</span>
+      <span class="text-[10px] text-slate-400">parsing...</span>
+    `;
+    attachmentsContainer.appendChild(card);
+  }
+
+  function removeUploadProgressCard(tempId) {
+    const el = document.getElementById(`temp-upload-${tempId}`);
+    if (el) el.remove();
+  }
+
+  function renderAttachmentsPreview() {
+    if (!attachmentsContainer) return;
+
+    if (attachedFiles.length === 0) {
+      attachmentsContainer.innerHTML = '';
+      attachmentsContainer.classList.add('hidden');
+      return;
+    }
+
+    attachmentsContainer.classList.remove('hidden');
+    attachmentsContainer.innerHTML = '';
+
+    attachedFiles.forEach((file, index) => {
+      const card = document.createElement('div');
+      card.className = "relative group inline-flex items-center gap-2 bg-dark-800 border border-spider-500/30 rounded-xl p-1.5 pr-2.5 text-xs text-slate-200 shadow-sm transition-all";
+
+      if (file.type === 'image' && (file.preview || file.data)) {
+        const src = file.preview || `data:${file.mime_type};base64,${file.data}`;
+        card.innerHTML = `
+          <img src="${src}" alt="${escapeHtml(file.name)}" class="w-9 h-9 rounded-lg object-cover border border-spider-500/20 cursor-pointer" onclick="openImageModal('${src}')">
+          <div class="flex flex-col text-left max-w-[120px]">
+            <span class="font-medium text-[11px] text-white truncate">${escapeHtml(file.name)}</span>
+            <span class="text-[10px] text-slate-400 font-mono">${formatBytes(file.size)}</span>
+          </div>
+          <button class="remove-att-btn text-slate-400 hover:text-rose-400 ml-1 p-0.5 rounded-md hover:bg-white/5" data-index="${index}" title="Remove image">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+      } else {
+        const icon = file.name.endsWith('.pdf') ? 'file-text' : (file.name.endsWith('.xlsx') || file.name.endsWith('.csv')) ? 'sheet' : 'file-code';
+        const pageCountStr = file.page_count ? ` (${file.page_count}p)` : '';
+        card.innerHTML = `
+          <div class="p-1.5 rounded-lg bg-dark-850 border border-spider-500/20">
+            <i data-lucide="${icon}" class="w-4 h-4 text-spider-400"></i>
+          </div>
+          <div class="flex flex-col text-left max-w-[140px]">
+            <span class="font-medium text-[11px] text-white truncate">${escapeHtml(file.name)}</span>
+            <span class="text-[10px] text-slate-400 font-mono">${formatBytes(file.size)}${pageCountStr}</span>
+          </div>
+          <button class="remove-att-btn text-slate-400 hover:text-rose-400 ml-1 p-0.5 rounded-md hover:bg-white/5" data-index="${index}" title="Remove document">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+      }
+
+      const removeBtn = card.querySelector('.remove-att-btn');
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        attachedFiles.splice(index, 1);
+        renderAttachmentsPreview();
+        updateSendButtonState();
+      });
+
+      attachmentsContainer.appendChild(card);
+    });
+
+    initLucide();
+  }
+
+  function clearAttachments() {
+    attachedFiles = [];
+    if (fileInput) fileInput.value = '';
+    renderAttachmentsPreview();
+    updateSendButtonState();
+  }
+
+  function setupFileHandling() {
+    attachFileBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleFilesUpload(Array.from(e.target.files));
+      }
+    });
   }
 
   // --- Conversations Management ---
@@ -168,34 +531,40 @@
 
   function renderConversationsList() {
     conversationsList.innerHTML = '';
-    const query = (searchConvInput.value || '').toLowerCase();
-    const filtered = conversations.filter(c => c.title.toLowerCase().includes(query));
+    const query = (searchConvInput.value || '').trim().toLowerCase();
+    const filtered = query 
+      ? conversations.filter(c => (c.title || '').toLowerCase().includes(query))
+      : conversations;
 
     if (filtered.length === 0) {
-      conversationsList.innerHTML = `<div class="p-3 text-center text-xs text-slate-500">No conversations</div>`;
+      conversationsList.innerHTML = `
+        <div class="p-4 text-center text-xs text-slate-500">
+          ${query ? 'No matching chats found.' : 'No conversations yet.'}
+        </div>
+      `;
       return;
     }
 
     filtered.forEach(conv => {
       const isActive = conv.id === currentConversationId;
       const item = document.createElement('div');
-      item.className = `group flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors ${
-        isActive ? 'bg-spider-500/10 text-spider-400 font-medium border border-spider-500/20' : 'text-slate-300 hover:bg-white/5'
+      item.className = `group flex items-center justify-between p-2.5 rounded-xl cursor-pointer text-xs transition-all ${
+        isActive 
+          ? 'bg-spider-500/15 text-spider-300 font-semibold border border-spider-500/25 shadow-sm' 
+          : 'text-slate-300 hover:bg-dark-850 hover:text-white border border-transparent'
       }`;
-
+      
       item.innerHTML = `
-        <div class="flex items-center gap-2 truncate flex-1 mr-2" data-conv-id="${conv.id}">
-          <i data-lucide="message-square" class="w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-spider-400' : 'text-slate-400'}"></i>
-          <span class="truncate">${escapeHtml(conv.title)}</span>
+        <div class="flex items-center gap-2.5 truncate flex-1 mr-2">
+          <i data-lucide="message-square" class="w-3.5 h-3.5 ${isActive ? 'text-spider-400' : 'text-slate-400'} shrink-0"></i>
+          <span class="truncate">${escapeHtml(conv.title || 'Conversation')}</span>
         </div>
-        <div class="opacity-0 group-hover:opacity-100 flex items-center gap-1">
-          <button class="delete-conv-btn p-1 text-slate-400 hover:text-rose-400" title="Delete" data-conv-id="${conv.id}">
-            <i data-lucide="trash-2" class="w-3 h-3"></i>
-          </button>
-        </div>
+        <button class="delete-conv-btn opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-400 rounded transition-opacity" title="Delete conversation">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+        </button>
       `;
 
-      item.querySelector('[data-conv-id]').addEventListener('click', () => {
+      item.addEventListener('click', () => {
         switchConversation(conv.id);
         closeMobileSidebar();
       });
@@ -292,9 +661,44 @@
     card.className = `flex flex-col ${isUser ? 'items-end' : 'items-start'} space-y-1.5`;
 
     if (isUser) {
+      // Clean attachment chips / cards inside user bubble (NEVER raw bytes!)
+      let attachmentsHtml = '';
+      if (msg.attachments && msg.attachments.length > 0) {
+        const cards = msg.attachments.map(att => {
+          if (att.type === 'image' && (att.preview || att.data)) {
+            const src = att.preview || `data:${att.mime_type || 'image/png'};base64,${att.data}`;
+            return `
+              <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-spider-500/25 bg-dark-900 shadow-sm" onclick="openImageModal('${src}')">
+                <img src="${src}" alt="${escapeHtml(att.name)}" class="w-24 h-24 sm:w-28 sm:h-28 object-cover transition-transform group-hover:scale-105">
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-[10px]">
+                  <i data-lucide="zoom-in" class="w-4 h-4 mr-1"></i> View
+                </div>
+                <div class="absolute bottom-0 inset-x-0 bg-dark-950/80 px-1.5 py-0.5 text-[9px] text-slate-300 truncate">
+                  ${escapeHtml(att.name)}
+                </div>
+              </div>
+            `;
+          } else {
+            const icon = (att.name || '').endsWith('.pdf') ? 'file-text' : ((att.name || '').endsWith('.xlsx') || (att.name || '').endsWith('.csv')) ? 'sheet' : 'file-code';
+            const sizeStr = formatBytes(att.size);
+            return `
+              <div class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-dark-900/90 border border-spider-500/25 text-xs text-slate-200 shadow-sm">
+                <i data-lucide="${icon}" class="w-4 h-4 text-spider-400 shrink-0"></i>
+                <div class="flex flex-col text-left max-w-[180px] sm:max-w-[220px]">
+                  <span class="font-medium truncate text-white text-xs">${escapeHtml(att.name || 'Document')}</span>
+                  <span class="text-[10px] text-slate-400 font-mono">${sizeStr}</span>
+                </div>
+              </div>
+            `;
+          }
+        }).join('');
+        attachmentsHtml = `<div class="flex flex-wrap gap-2 mb-2">${cards}</div>`;
+      }
+
       card.innerHTML = `
-        <div class="max-w-[85%] sm:max-w-xl rounded-2xl rounded-tr-sm bg-gradient-to-r from-emerald-600/20 to-spider-500/20 border border-spider-500/30 p-3.5 text-xs sm:text-sm text-slate-100 shadow-sm leading-relaxed whitespace-pre-wrap">
-          ${escapeHtml(msg.content)}
+        <div class="max-w-[85%] sm:max-w-xl rounded-2xl rounded-tr-sm bg-gradient-to-r from-emerald-600/20 to-spider-500/20 border border-spider-500/30 p-3.5 text-xs sm:text-sm text-slate-100 shadow-sm leading-relaxed">
+          ${attachmentsHtml}
+          ${msg.content ? `<div class="whitespace-pre-wrap">${escapeHtml(msg.content)}</div>` : ''}
         </div>
       `;
     } else {
@@ -337,7 +741,7 @@
         `;
       }
 
-      // Per-reply Action Buttons (Regenerate, Make shorter, Make more detailed, Copy)
+      // Per-reply Action Buttons
       const actionsBarHtml = `
         <div class="mt-2.5 flex items-center gap-1 text-[11px] text-slate-400 border-t border-white/5 pt-2">
           <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="regenerate" data-msg-id="${msg.id}" title="Regenerate this response">
@@ -431,14 +835,12 @@
   // --- Send Message & Streaming Engine ---
   async function sendMessage(textOverride = null) {
     const rawText = textOverride !== null ? textOverride : chatInput.value.trim();
-    if (!rawText && !attachedFile) return;
+    if (!rawText && attachedFiles.length === 0) return;
     if (isStreaming) return;
 
-    let messageToSend = rawText;
-    if (attachedFile) {
-      messageToSend = `[Attached File: ${attachedFile.name}]\n\`\`\`\n${attachedFile.content}\n\`\`\`\n\n${rawText}`;
-      clearAttachment();
-    }
+    // Snapshot current attachments
+    const currentAttachments = [...attachedFiles];
+    clearAttachments();
 
     // Reset input
     chatInput.value = '';
@@ -449,7 +851,8 @@
     const tempUserMsg = {
       id: 'tmp_' + Date.now(),
       role: 'user',
-      content: messageToSend
+      content: rawText,
+      attachments: currentAttachments
     };
     appendMessageToUI(tempUserMsg);
     scrollToBottom();
@@ -471,7 +874,7 @@
         <div class="prose max-w-none text-slate-200" id="stream-content-${assistantMsgId}">
           <div class="flex items-center gap-2 text-slate-400 text-xs py-1">
             <span class="w-2 h-2 rounded-full bg-spider-400 animate-ping"></span>
-            <span>Thinking and verifying...</span>
+            <span>Analyzing and verifying...</span>
           </div>
         </div>
         <div id="stream-sources-${assistantMsgId}"></div>
@@ -491,9 +894,10 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: messageToSend,
+          message: rawText,
           conversation_id: currentConversationId,
-          enable_search: true
+          enable_search: true,
+          attachments: currentAttachments
         }),
         signal: currentAbortController.signal
       });
@@ -522,31 +926,31 @@
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
-        buffer = lines.pop(); // keep remainder
+        buffer = lines.pop(); // keep last uncompleted line
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const jsonStr = line.slice(6).trim();
-            if (!jsonStr) continue;
+            const rawData = line.replace('data: ', '').trim();
+            if (!rawData) continue;
 
             try {
-              const eventData = JSON.parse(jsonStr);
+              const parsed = JSON.parse(rawData);
 
-              if (eventData.type === 'sources') {
-                accumulatedSources = eventData.sources || [];
+              if (parsed.type === 'sources') {
+                accumulatedSources = parsed.sources || [];
                 renderSourcesInStream(assistantMsgId, accumulatedSources);
-              } else if (eventData.type === 'token') {
-                fullAccumulatedText += eventData.token;
-                contentEl.innerHTML = renderMarkdown(fullAccumulatedText);
-                highlightCodeBlocks(contentEl);
+              } else if (parsed.type === 'token') {
+                fullAccumulatedText += parsed.token;
+                if (contentEl) {
+                  contentEl.innerHTML = renderMarkdown(fullAccumulatedText);
+                  highlightCodeBlocks(contentEl);
+                }
                 scrollToBottom();
-              } else if (eventData.type === 'follow_up_chips') {
-                accumulatedChips = eventData.chips || [];
-              } else if (eventData.type === 'error') {
-                renderErrorState(assistantCard, eventData.message, messageToSend);
+              } else if (parsed.type === 'follow_up_chips') {
+                accumulatedChips = parsed.chips || [];
+              } else if (parsed.type === 'error') {
+                renderErrorState(assistantCard, parsed.message, rawText);
                 return;
-              } else if (eventData.type === 'done') {
-                finalizeStream(assistantCard, assistantMsgId, fullAccumulatedText, accumulatedSources, accumulatedChips);
               }
             } catch (err) {
               console.error('SSE parse error', err);
@@ -559,7 +963,7 @@
 
     } catch (err) {
       if (err.name !== 'AbortError') {
-        renderErrorState(assistantCard, 'Service connection failed or timed out.', messageToSend);
+        renderErrorState(assistantCard, 'Service connection failed or timed out.', rawText);
       }
     } finally {
       isStreaming = false;
@@ -600,7 +1004,7 @@
     const chipsContainer = document.getElementById(`stream-chips-${msgId}`);
     if (chipsContainer && chips && chips.length > 0) {
       const chipsList = chips.map(chip => `
-        <button class="follow-up-chip px-3 py-1.5 rounded-full bg-dark-850 hover:bg-dark-800 border border-gold-500/30 hover:border-gold-500/60 text-gold-400 hover:text-gold-300 text-xs font-medium transition-all text-left shadow-sm active:scale-95 flex items-center gap-1.5">
+        <button class="follow-up-chip px-3 py-1.5 rounded-full bg-dark-850 hover:bg-dark-800 border border-spider-500/30 hover:border-spider-400/60 text-spider-400 hover:text-spider-300 text-xs font-medium transition-all text-left shadow-sm active:scale-95 flex items-center gap-1.5">
           <i data-lucide="arrow-right" class="w-3 h-3"></i>
           <span>${escapeHtml(chip)}</span>
         </button>
@@ -625,15 +1029,15 @@
     if (actionsContainer) {
       actionsContainer.className = "mt-2.5 flex items-center gap-1 text-[11px] text-slate-400 border-t border-white/5 pt-2";
       actionsContainer.innerHTML = `
-        <button class="per-reply-btn hover:text-gold-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="regenerate" data-msg-id="${msgId}">
+        <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="regenerate" data-msg-id="${msgId}">
           <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
           <span class="hidden sm:inline">Regenerate</span>
         </button>
-        <button class="per-reply-btn hover:text-gold-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="shorter" data-msg-id="${msgId}">
+        <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="shorter" data-msg-id="${msgId}">
           <i data-lucide="minimize-2" class="w-3.5 h-3.5"></i>
           <span class="hidden sm:inline">Make shorter</span>
         </button>
-        <button class="per-reply-btn hover:text-gold-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="detailed" data-msg-id="${msgId}">
+        <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="detailed" data-msg-id="${msgId}">
           <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
           <span class="hidden sm:inline">Make more detailed</span>
         </button>
@@ -698,12 +1102,11 @@
                        action === 'shorter' ? 'Condensing to punchy summary...' :
                        'Expanding with comprehensive detail...';
 
-    // Temporary placeholder
     const placeholderCard = document.createElement('div');
     placeholderCard.className = 'flex flex-col items-start space-y-1.5 w-full';
     placeholderCard.innerHTML = `
       <div class="max-w-[95%] sm:max-w-2xl rounded-2xl bg-dark-900 border border-white/5 p-4 text-xs text-slate-400 flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-gold-400 animate-ping"></span>
+        <span class="w-2 h-2 rounded-full bg-spider-400 animate-ping"></span>
         <span>${actionText}</span>
       </div>
     `;
@@ -738,43 +1141,7 @@
     }
   }
 
-  // --- File Upload ---
-  function setupFileHandling() {
-    attachFileBtn.addEventListener('click', () => {
-      fileInput.click();
-    });
-
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        attachedFile = {
-          name: file.name,
-          content: event.target.result
-        };
-        attachmentName.textContent = file.name;
-        attachmentPreview.classList.remove('hidden');
-        updateSendButtonState();
-        chatInput.focus();
-      };
-      reader.readAsText(file);
-    });
-
-    removeAttachmentBtn.addEventListener('click', () => {
-      clearAttachment();
-    });
-  }
-
-  function clearAttachment() {
-    attachedFile = null;
-    fileInput.value = '';
-    attachmentPreview.classList.add('hidden');
-    updateSendButtonState();
-  }
-
-  // --- Quick Actions Grid (Home Screen & Modal) ---
+  // --- Quick Actions Grid ---
   function setupQuickActions() {
     document.querySelectorAll('[data-quick-action]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -814,7 +1181,7 @@
       autoResizeInput();
     });
 
-    // Voice
+    // Voice Input Click
     voiceInputBtn.addEventListener('click', toggleRecording);
 
     // New Chat
@@ -836,7 +1203,7 @@
     // Export Modal
     exportChatBtn.addEventListener('click', () => {
       if (!currentConversationId) {
-        alert('Please select or start a conversation first.');
+        showToast('Please select or start a conversation first.', 'info');
         return;
       }
       exportModal.classList.remove('hidden');
@@ -855,25 +1222,19 @@
 
     // Global Desktop Keyboard Shortcuts
     document.addEventListener('keydown', (e) => {
-      // Ctrl+N / Cmd+N -> New Chat
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
         e.preventDefault();
         startNewChat();
-      }
-      // Ctrl+K / Cmd+K -> Focus input or Quick Action
-      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         chatInput.focus();
-      }
-      // Ctrl+/ -> Toggle Shortcuts Modal
-      else if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+      } else if ((e.ctrlKey || e.metaKey) && e.key === '/') {
         e.preventDefault();
         shortcutsModal.classList.toggle('hidden');
-      }
-      // Escape -> Close any open modal or sidebar
-      else if (e.key === 'Escape') {
+      } else if (e.key === 'Escape') {
         shortcutsModal.classList.add('hidden');
         exportModal.classList.add('hidden');
+        if (imageModal) imageModal.classList.add('hidden');
         closeMobileSidebar();
       }
     });
@@ -894,8 +1255,8 @@
 
   function updateSendButtonState() {
     const hasText = chatInput.value.trim().length > 0;
-    const hasFile = attachedFile !== null;
-    sendBtn.disabled = !(hasText || hasFile) || isStreaming;
+    const hasFiles = attachedFiles.length > 0;
+    sendBtn.disabled = !(hasText || hasFiles) || isStreaming;
   }
 
   function autoResizeInput() {
@@ -911,6 +1272,36 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  // --- PWA Service Worker ---
+  function initServiceWorker() {
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (pwaInstallBtn) {
+        pwaInstallBtn.classList.remove('hidden');
+      }
+    });
+
+    if (pwaInstallBtn) {
+      pwaInstallBtn.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') {
+            pwaInstallBtn.classList.add('hidden');
+          }
+          deferredPrompt = null;
+        }
+      });
+    }
   }
 
   // Launch app

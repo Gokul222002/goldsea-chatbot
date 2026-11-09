@@ -264,29 +264,26 @@
     <div class="p-3 md:p-4 bg-dark-900/80 backdrop-blur-md border-t border-spider-500/10">
       <div class="max-w-3xl mx-auto">
         
-        <!-- File Attachment Badge (If file attached) -->
-        <div id="attachment-preview" class="hidden mb-2 inline-flex items-center gap-2 bg-dark-800 border border-spider-500/20 px-3 py-1.5 rounded-lg text-xs text-slate-200">
-          <i data-lucide="paperclip" class="w-3.5 h-3.5 text-spider-400"></i>
-          <span id="attachment-name" class="font-mono text-[11px]">filename.txt</span>
-          <button id="remove-attachment-btn" class="text-slate-400 hover:text-white ml-1">
-            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-          </button>
+        <!-- File & Image Attachments Container -->
+        <div id="attachments-container" class="hidden mb-2.5 flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1">
+          <!-- Dynamic Attachment Previews rendered here -->
         </div>
 
         <!-- Main Input Container -->
         <div class="relative flex items-end gap-2 bg-dark-850 border border-spider-500/20 focus-within:border-spider-400/60 rounded-2xl p-2 transition-all shadow-md">
           
           <!-- Hidden File Input -->
-          <input type="file" id="file-input" class="hidden" accept=".txt,.py,.js,.html,.json,.md,.csv,.pdf">
+          <input type="file" id="file-input" class="hidden" multiple accept="image/png,image/jpeg,image/webp,image/gif,.pdf,.docx,.xlsx,.csv,.txt,.json,.md,.py,.js">
           
           <!-- Attach File Button -->
-          <button id="attach-file-btn" type="button" title="Upload Document or Code" class="p-2 text-slate-400 hover:text-spider-400 rounded-xl hover:bg-white/5 transition-colors">
+          <button id="attach-file-btn" type="button" title="Upload Images, PDFs, Documents, or Code" class="p-2 text-slate-400 hover:text-spider-400 rounded-xl hover:bg-white/5 transition-colors">
             <i data-lucide="paperclip" class="w-5 h-5"></i>
           </button>
 
-          <!-- Voice Input Button (Web Speech API) -->
-          <button id="voice-input-btn" type="button" title="Voice Input" class="p-2 text-slate-400 hover:text-spider-400 rounded-xl hover:bg-white/5 transition-colors">
+          <!-- Voice Input Button (Web Speech API + MediaRecorder Fallback) -->
+          <button id="voice-input-btn" type="button" title="Voice Input (Speech-to-Text)" class="relative p-2 text-slate-400 hover:text-spider-400 rounded-xl hover:bg-white/5 transition-all">
             <i data-lucide="mic" class="w-5 h-5"></i>
+            <span id="mic-status-dot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-spider-400 animate-ping"></span>
           </button>
 
           <!-- Auto-expanding Textarea -->
@@ -393,6 +390,28 @@
       </div>
     </div>
   </div>
+
+  <!-- Drop Zone Overlay for Drag & Drop -->
+  <div id="drop-zone-overlay" class="fixed inset-0 bg-dark-950/80 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center border-4 border-dashed border-spider-500/50 pointer-events-none transition-all">
+    <div class="p-6 rounded-2xl bg-dark-900 border border-spider-500/40 text-center space-y-3 shadow-2xl">
+      <i data-lucide="upload-cloud" class="w-12 h-12 text-spider-400 mx-auto animate-bounce"></i>
+      <h3 class="text-base font-bold text-white">Drop images or documents here</h3>
+      <p class="text-xs text-slate-400">PDF, DOCX, XLSX, CSV, Code, PNG, JPG, WEBP, GIF</p>
+    </div>
+  </div>
+
+  <!-- Image Enlargement Lightbox Modal -->
+  <div id="image-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center">
+      <button id="close-image-modal-btn" class="absolute -top-10 right-0 p-2 text-slate-400 hover:text-white rounded-lg">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+      <img id="enlarged-image" src="" alt="Enlarged Preview" class="max-w-full max-h-[85vh] rounded-xl object-contain shadow-2xl border border-white/10">
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
 
   <!-- App Logic & PWA Registration -->
   <script src="/static/js/app.js"></script>

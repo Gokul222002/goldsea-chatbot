@@ -6,8 +6,18 @@ class SourceItem(BaseModel):
     url: str
     snippet: Optional[str] = ""
 
+class AttachmentItem(BaseModel):
+    name: str
+    type: str = "document"  # "image" or "document"
+    mime_type: Optional[str] = "text/plain"
+    size: Optional[int] = 0
+    data: Optional[str] = None  # base64 string for images
+    preview: Optional[str] = None  # data URL or thumbnail
+    extracted_text: Optional[str] = None
+    page_images: Optional[List[Dict[str, Any]]] = None
+
 class ChatRequest(BaseModel):
-    message: str = Field(..., min_length=1)
+    message: str = Field(default="", min_length=0)
     conversation_id: Optional[str] = None
     tone: Optional[str] = None
     enable_search: bool = True

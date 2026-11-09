@@ -37,10 +37,17 @@ def init_db():
         content TEXT NOT NULL,
         sources TEXT DEFAULT '[]',
         follow_up_chips TEXT DEFAULT '[]',
+        attachments TEXT DEFAULT '[]',
         created_at TEXT NOT NULL,
         FOREIGN KEY (conversation_id) REFERENCES conversations (id) ON DELETE CASCADE
     )
     """)
+    
+    # Check if attachments column exists (for existing database migrations)
+    cursor.execute("PRAGMA table_info(messages)")
+    cols = [c[1] for c in cursor.fetchall()]
+    if "attachments" not in cols:
+        cursor.execute("ALTER TABLE messages ADD COLUMN attachments TEXT DEFAULT '[]'")
     
     # 3. User memories table (cross-chat long-term memory)
     cursor.execute("""
@@ -153,16 +160,18 @@ def save_message(
     role: str,
     content: str,
     sources: Optional[List[Dict[str, Any]]] = None,
-    follow_up_chips: Optional[List[str]] = None
+    follow_up_chips: Optional[List[str]] = None,
+    attachments: Optional[List[Dict[str, Any]]] = None
 ) -> Dict[str, Any]:
     conn = get_db()
     cursor = conn.cursor()
     now = datetime.utcnow().isoformat()
     sources_json = json.dumps(sources or [])
     chips_json = json.dumps(follow_up_chips or [])
+    attachments_json = json.dumps(attachments or [])
     cursor.execute(
-        "INSERT INTO messages (id, conversation_id, role, content, sources, follow_up_chips, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (msg_id, conv_id, role, content, sources_json, chips_json, now)
+        "INSERT INTO messages (id, conversation_id, role, content, sources, follow_up_chips, attachments, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (msg_id, conv_id, role, content, sources_json, chips_json, attachments_json, now)
     )
     cursor.execute("UPDATE conversations SET updated_at = ? WHERE id = ?", (now, conv_id))
     conn.commit()
@@ -174,6 +183,7 @@ def save_message(
         "content": content,
         "sources": sources or [],
         "follow_up_chips": follow_up_chips or [],
+        "attachments": attachments or [],
         "created_at": now
     }
 
@@ -187,6 +197,7 @@ def get_conversation_messages(conv_id: str) -> List[Dict[str, Any]]:
         d = dict(r)
         d["sources"] = json.loads(d["sources"] or "[]")
         d["follow_up_chips"] = json.loads(d["follow_up_chips"] or "[]")
+        d["attachments"] = json.loads(d.get("attachments") or "[]")
         messages.append(d)
     conn.close()
     return messages

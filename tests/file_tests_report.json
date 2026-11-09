@@ -1,0 +1,487 @@
+{
+  "total": 48,
+  "passed": 48,
+  "overall_score_pct": 100.0,
+  "file_image_score_pct": 100.0,
+  "regression_score_pct": 100.0,
+  "tests": [
+    {
+      "category": "PDF (Resume)",
+      "question": "What is the email address in the resume?",
+      "passed": true,
+      "answer": "The email address in the resume is aarav.sharma.dev@gmail.com.",
+      "expected": [
+        "aarav.sharma.dev@gmail.com"
+      ]
+    },
+    {
+      "category": "PDF (Resume)",
+      "question": "What is the CGPA of Aarav Sharma?",
+      "passed": true,
+      "answer": "The CGPA of Aarav Sharma is 9.2.",
+      "expected": [
+        "9.2"
+      ]
+    },
+    {
+      "category": "PDF (Resume)",
+      "question": "How many projects are listed in the resume?",
+      "passed": true,
+      "answer": "There are 3 projects listed in the resume.",
+      "expected": [
+        "3",
+        "three"
+      ]
+    },
+    {
+      "category": "PDF (Resume)",
+      "question": "What is the phone number listed?",
+      "passed": true,
+      "answer": "The phone number listed is +1-555-019-2834.",
+      "expected": [
+        "+1-555-019-2834",
+        "555-019-2834",
+        "555 019 2834"
+      ]
+    },
+    {
+      "category": "PDF (Resume)",
+      "question": "What is the name of the Kubernetes automated security scanner project?",
+      "passed": true,
+      "answer": "The name of the project is **CloudShield**.",
+      "expected": [
+        "CloudShield"
+      ]
+    },
+    {
+      "category": "PDF (Multi-page)",
+      "question": "What was the total revenue reported in the executive summary?",
+      "passed": true,
+      "answer": "The total revenue reported in the executive summary was **$42.5 million**.",
+      "expected": [
+        "$42.5 million",
+        "42.5 million",
+        "42.5"
+      ]
+    },
+    {
+      "category": "PDF (Multi-page)",
+      "question": "What is the cloud server uptime reported on page 2?",
+      "passed": true,
+      "answer": "The cloud server uptime reported on page 2 is 99.98%.",
+      "expected": [
+        "99.98%",
+        "99.98"
+      ]
+    },
+    {
+      "category": "PDF (Multi-page)",
+      "question": "How many new engineers are planned to be hired according to page 3?",
+      "passed": true,
+      "answer": "According to page 3, the planned headcount growth targets hiring 150 new engineers in Q3.",
+      "expected": [
+        "150"
+      ]
+    },
+    {
+      "category": "PDF (Table)",
+      "question": "What were the sales for the North region in Q4?",
+      "passed": true,
+      "answer": "The sales for the North region in Q4 were 210.",
+      "expected": [
+        "210"
+      ]
+    },
+    {
+      "category": "PDF (Table)",
+      "question": "Which region had the highest sales in Q1?",
+      "passed": true,
+      "answer": "The West region had the highest sales in Q1 with 150.",
+      "expected": [
+        "West"
+      ]
+    },
+    {
+      "category": "PDF (Scanned/OCR)",
+      "question": "Who was the certificate of excellence awarded to?",
+      "passed": true,
+      "answer": "The Certificate of Excellence was awarded to **Dr. Elena Vance**.",
+      "expected": [
+        "Elena Vance",
+        "Dr. Elena Vance"
+      ]
+    },
+    {
+      "category": "PDF (Scanned/OCR)",
+      "question": "What is the exact verification ID printed on the certificate?",
+      "passed": true,
+      "answer": "The exact verification ID printed on the certificate is QT-88492.",
+      "expected": [
+        "QT-88492",
+        "QT 88492"
+      ]
+    },
+    {
+      "category": "Image (Screenshot)",
+      "question": "What is the database latency shown in the screenshot?",
+      "passed": true,
+      "answer": "The database latency shown in the screenshot is 4.2ms.",
+      "expected": [
+        "4.2ms",
+        "4.2"
+      ]
+    },
+    {
+      "category": "Image (Screenshot)",
+      "question": "How many active cluster nodes are shown?",
+      "passed": true,
+      "answer": "There are 64 active cluster nodes shown.",
+      "expected": [
+        "64"
+      ]
+    },
+    {
+      "category": "Image (Chart)",
+      "question": "Which fruit has the highest value in the chart?",
+      "passed": true,
+      "answer": "Bananas have the highest value with 70 units.",
+      "expected": [
+        "Bananas",
+        "Banana",
+        "70"
+      ]
+    },
+    {
+      "category": "Image (Chart)",
+      "question": "What is the exact count for Apples in the chart?",
+      "passed": true,
+      "answer": "The exact count for Apples in the chart is 45.",
+      "expected": [
+        "45"
+      ]
+    },
+    {
+      "category": "Image (Diagram)",
+      "question": "What color is the Client circle?",
+      "passed": true,
+      "answer": "The Client circle is blue.",
+      "expected": [
+        "blue"
+      ]
+    },
+    {
+      "category": "Image (Diagram)",
+      "question": "What component is in the orange box on the right?",
+      "passed": true,
+      "answer": "The component in the orange box on the right is the **Redis Cache**.",
+      "expected": [
+        "Redis",
+        "Redis Cache"
+      ]
+    },
+    {
+      "category": "Image (Handwriting)",
+      "question": "By what day and time must the quarterly tax filing be submitted?",
+      "passed": true,
+      "answer": "The quarterly tax filing must be submitted by **Friday at 4 PM**.",
+      "expected": [
+        "Friday",
+        "4 PM",
+        "4:00 PM"
+      ]
+    },
+    {
+      "category": "Image (Handwriting)",
+      "question": "Who must the filing be submitted to according to the note?",
+      "passed": true,
+      "answer": "The filing must be submitted to John Doe.",
+      "expected": [
+        "John Doe",
+        "John"
+      ]
+    },
+    {
+      "category": "Image (Code)",
+      "question": "What discount rate is given for the VIP tier in the code?",
+      "passed": true,
+      "answer": "The discount rate for the VIP tier is 25% (represented as `0.25` in the code).",
+      "expected": [
+        "0.25",
+        "25%"
+      ]
+    },
+    {
+      "category": "Image (Code)",
+      "question": "What is the function name in the code screenshot?",
+      "passed": true,
+      "answer": "The function name in the code is `compute_discount`.",
+      "expected": [
+        "compute_discount"
+      ]
+    },
+    {
+      "category": "Multi-turn Image Memory",
+      "question": "What was the count for Cherries (follow-up without re-attaching)?",
+      "passed": true,
+      "answer": "The count for Cherries is 25.",
+      "expected": [
+        "25"
+      ]
+    },
+    {
+      "category": "DOCX",
+      "question": "Date for Prototype launch?",
+      "passed": true,
+      "answer": "The Prototype launch for Project Falcon is scheduled for March 15.",
+      "expected": [
+        "March 15"
+      ]
+    },
+    {
+      "category": "XLSX",
+      "question": "Unit price of Widget B?",
+      "passed": true,
+      "answer": "The unit price of Widget B is $24.00.",
+      "expected": [
+        "$24.00",
+        "24"
+      ]
+    },
+    {
+      "category": "CSV",
+      "question": "Job title of Alice?",
+      "passed": true,
+      "answer": "Alice's job title is Lead Architect.",
+      "expected": [
+        "Lead Architect"
+      ]
+    },
+    {
+      "category": "TXT",
+      "question": "Wi-Fi password?",
+      "passed": true,
+      "answer": "The Wi-Fi password is **SeaBreeze#2026**.",
+      "expected": [
+        "SeaBreeze#2026"
+      ]
+    },
+    {
+      "category": "Audio Fallback Endpoint",
+      "question": "POST /api/chat/transcribe responds gracefully",
+      "passed": true,
+      "answer": "200",
+      "expected": [
+        "200 or 400"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q1: Hello! Who are you?",
+      "passed": true,
+      "answer": "I am GoldSea AI, your personal all-in-one assistant. I am here to help you with ",
+      "expected": [
+        "GoldSea",
+        "assistant",
+        "agent"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q2: What is 17 * 19?",
+      "passed": true,
+      "answer": "17 * 19 = 323.",
+      "expected": [
+        "323"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q3: Write a Python one-liner to reverse a list called nums.",
+      "passed": true,
+      "answer": "```python\nnums = nums[::-1]\n```\n\nThis uses Python's slice notation with a step o",
+      "expected": [
+        "nums[::-1]",
+        "reverse"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q4: What is the capital of France?",
+      "passed": true,
+      "answer": "The capital of France is Paris.",
+      "expected": [
+        "Paris"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q5: Explain the difference between a process and a thread in 2 sentences.",
+      "passed": true,
+      "answer": "A process is an independent program execution unit with its own dedicated memory",
+      "expected": [
+        "process",
+        "thread",
+        "memory"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q6: What is the speed of light in vacuum?",
+      "passed": true,
+      "answer": "The speed of light in a vacuum is exactly 299,792,458 meters per second (approxi",
+      "expected": [
+        "299792458",
+        "300000",
+        "3 x 10^8",
+        "300,000",
+        "186000"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q7: What does HTML stand for?",
+      "passed": true,
+      "answer": "HTML stands for **HyperText Markup Language**.",
+      "expected": [
+        "Hypertext Markup Language",
+        "HyperText Markup Language"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q8: Convert 100 Celsius to Fahrenheit.",
+      "passed": true,
+      "answer": "100\u00b0C is 212\u00b0F. \n\nFormula: (100 \u00d7 9/5) + 32 = 212.",
+      "expected": [
+        "212"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q9: Who proposed the theory of general relativity?",
+      "passed": true,
+      "answer": "Albert Einstein proposed the theory of general relativity, publishing it in 1915",
+      "expected": [
+        "Einstein",
+        "Albert Einstein"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q10: What is the time complexity of binary search on a sorted array?",
+      "passed": true,
+      "answer": "The time complexity of binary search on a sorted array is **O(log n)**, where *n",
+      "expected": [
+        "O(log n)",
+        "O(logn)",
+        "logarithmic"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q11: What is the chemical formula for water?",
+      "passed": true,
+      "answer": "The chemical formula for water is **H\u2082O**.",
+      "expected": [
+        "H2O",
+        "H\u2082O"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q12: What year did the Apollo 11 mission land on the moon?",
+      "passed": true,
+      "answer": "The Apollo 11 mission landed on the moon in 1969.",
+      "expected": [
+        "1969"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q13: Give me 3 synonyms for the word 'innovative'.",
+      "passed": true,
+      "answer": "1. Groundbreaking\n2. Inventive\n3. Pioneering",
+      "expected": [
+        "creative",
+        "novel",
+        "groundbreaking",
+        "inventive",
+        "original",
+        "fresh"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q14: What is a REST API?",
+      "passed": true,
+      "answer": "A REST (Representational State Transfer) API is an architectural style for web s",
+      "expected": [
+        "Representational State Transfer",
+        "HTTP",
+        "endpoint",
+        "architecture"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q15: How many days are in a leap year?",
+      "passed": true,
+      "answer": "A leap year has 366 days.",
+      "expected": [
+        "366"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q16: What is the square root of 144?",
+      "passed": true,
+      "answer": "The square root of 144 is 12.",
+      "expected": [
+        "12"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q17: Name the four terrestrial (rocky) planets in our solar system.",
+      "passed": true,
+      "answer": "The four terrestrial planets in our solar system are Mercury, Venus, Earth, and ",
+      "expected": [
+        "Mercury",
+        "Venus",
+        "Earth",
+        "Mars"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q18: What does CSS stand for?",
+      "passed": true,
+      "answer": "CSS stands for **Cascading Style Sheets**. It is the language used to describe t",
+      "expected": [
+        "Cascading Style Sheets"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q19: What is the purpose of Docker?",
+      "passed": true,
+      "answer": "Docker\u2019s purpose is to package applications and their dependencies into **contai",
+      "expected": [
+        "container",
+        "containers",
+        "packaging",
+        "isolation"
+      ]
+    },
+    {
+      "category": "Regression Chat",
+      "question": "Q20: If I have 5 apples and eat 2, how many remain?",
+      "passed": true,
+      "answer": "You have 3 apples remaining.",
+      "expected": [
+        "3",
+        "three"
+      ]
+    }
+  ]
+}

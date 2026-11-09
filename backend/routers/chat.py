@@ -1,10 +1,12 @@
 import os
 import uuid
-from fastapi import APIRouter, HTTPException
+from typing import List, Optional
+from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse, JSONResponse
 from backend.models import ChatRequest, QuickActionRequest, PerReplyActionRequest
-from backend.llm_service import generate_chat_response, stream_chat_response
+from backend.llm_service import generate_chat_response, stream_chat_response, transcribe_audio
 from backend.database import create_conversation, get_conversation, save_message, get_conversation_messages
+from backend.document_parser import process_uploaded_file
 
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
 
@@ -17,26 +19,61 @@ QUICK_ACTION_PROMPTS = {
     "plan": "Plan my day with a realistic, high-priority, time-blocked schedule based on these tasks:\n\n"
 }
 
+@router.post("/upload")
+async def upload_file_endpoint(file: UploadFile = File(...)):
+    """Uploads and server-side extracts binary PDF, DOCX, XLSX, CSV, TXT, or images."""
+    try:
+        content = await file.read()
+        res = process_uploaded_file(content, file.filename or "uploaded_file", file.content_type)
+        return res
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"File processing error: {str(e)}")
+
+@router.post("/transcribe")
+async def transcribe_audio_endpoint(file: UploadFile = File(...)):
+    """Transcribes audio recordings using multimodal speech-to-text fallback."""
+    try:
+        audio_bytes = await file.read()
+        text, err = await transcribe_audio(audio_bytes, file.content_type or "audio/webm")
+        if err or not text:
+            raise HTTPException(status_code=400, detail=err or "Transcription failed")
+        return {"text": text}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Audio error: {str(e)}")
+
 @router.post("")
 async def chat_endpoint(request: ChatRequest):
     conv_id = request.conversation_id
+    attachments = request.attachments or []
+    
+    title_text = request.message.strip()
+    if not title_text and attachments:
+        title_text = f"File: {attachments[0].get('name', 'Attachment')}"
+    elif not title_text:
+        title_text = "New Conversation"
+
     if not conv_id:
         conv_id = f"conv_{uuid.uuid4().hex[:12]}"
-        create_conversation(conv_id, title=request.message[:40] + ("..." if len(request.message) > 40 else ""))
+        create_conversation(conv_id, title=title_text[:40] + ("..." if len(title_text) > 40 else ""))
     else:
         conv = get_conversation(conv_id)
         if not conv:
-            create_conversation(conv_id, title=request.message[:40] + ("..." if len(request.message) > 40 else ""))
+            create_conversation(conv_id, title=title_text[:40] + ("..." if len(title_text) > 40 else ""))
 
-    # Save user message
+    # Save user message with attachments
     user_msg_id = f"msg_{uuid.uuid4().hex[:10]}"
-    save_message(user_msg_id, conv_id, role="user", content=request.message)
+    save_message(user_msg_id, conv_id, role="user", content=request.message, attachments=attachments)
 
     # Process response
     result = await generate_chat_response(
         query=request.message,
         conversation_id=conv_id,
-        enable_search=request.enable_search
+        enable_search=request.enable_search,
+        attachments=attachments
     )
 
     # Save assistant message
@@ -47,7 +84,8 @@ async def chat_endpoint(request: ChatRequest):
         role="assistant",
         content=result["text"],
         sources=result["sources"],
-        follow_up_chips=result["follow_up_chips"]
+        follow_up_chips=result["follow_up_chips"],
+        attachments=[]
     )
 
     return {
@@ -62,23 +100,32 @@ async def chat_endpoint(request: ChatRequest):
 @router.post("/stream")
 async def chat_stream_endpoint(request: ChatRequest):
     conv_id = request.conversation_id
+    attachments = request.attachments or []
+    
+    title_text = request.message.strip()
+    if not title_text and attachments:
+        title_text = f"File: {attachments[0].get('name', 'Attachment')}"
+    elif not title_text:
+        title_text = "New Conversation"
+
     if not conv_id:
         conv_id = f"conv_{uuid.uuid4().hex[:12]}"
-        create_conversation(conv_id, title=request.message[:40] + ("..." if len(request.message) > 40 else ""))
+        create_conversation(conv_id, title=title_text[:40] + ("..." if len(title_text) > 40 else ""))
     else:
         conv = get_conversation(conv_id)
         if not conv:
-            create_conversation(conv_id, title=request.message[:40] + ("..." if len(request.message) > 40 else ""))
+            create_conversation(conv_id, title=title_text[:40] + ("..." if len(title_text) > 40 else ""))
 
-    # Save user message
+    # Save user message with attachments
     user_msg_id = f"msg_{uuid.uuid4().hex[:10]}"
-    save_message(user_msg_id, conv_id, role="user", content=request.message)
+    save_message(user_msg_id, conv_id, role="user", content=request.message, attachments=attachments)
 
     return StreamingResponse(
         stream_chat_response(
             query=request.message,
             conversation_id=conv_id,
-            enable_search=request.enable_search
+            enable_search=request.enable_search,
+            attachments=attachments
         ),
         media_type="text/event-stream",
         headers={
