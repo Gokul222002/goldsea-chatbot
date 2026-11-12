@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <title>GoldSea AI — Genuinely Helpful Personal Assistant</title>
   
   <!-- PWA Meta Tags & Spider Favicon -->
@@ -56,13 +56,13 @@
   <!-- Custom Styles with Spider Texture -->
   <link rel="stylesheet" href="/static/css/app.css">
 </head>
-<body class="bg-dark-950 text-slate-100 flex h-[100dvh] w-screen overflow-hidden selection:bg-spider-500/30 selection:text-spider-400">
+<body class="bg-dark-950 text-slate-100 flex h-[100dvh] w-full max-w-[100vw] overflow-hidden selection:bg-spider-500/30 selection:text-spider-400">
 
   <!-- Mobile Sidebar Backdrop Overlay -->
-  <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden md:hidden transition-opacity"></div>
+  <div id="sidebar-backdrop" class="fixed inset-0 bg-black/65 backdrop-blur-sm z-40 hidden md:hidden transition-opacity"></div>
 
   <!-- Sidebar (Responsive Drawer) -->
-  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-72 bg-dark-900 border-r border-spider-500/10 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out relative z-10">
+  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-50 md:z-auto w-[min(85vw,320px)] md:w-72 shrink-0 h-[100dvh] md:h-full bg-[#0a140e] border-r border-spider-500/10 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out overflow-hidden">
     
     <!-- Sidebar Header with Spider Mascot -->
     <div class="p-4 border-b border-spider-500/10 flex items-center justify-between">
@@ -76,7 +76,7 @@
         </div>
       </div>
       <!-- Close drawer on mobile -->
-      <button id="close-sidebar-btn" class="md:hidden p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5">
+      <button id="close-sidebar-btn" type="button" aria-label="Close Menu" class="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/5">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
     </div>
@@ -140,43 +140,54 @@
   </aside>
 
   <!-- Main Chat Workspace -->
-  <main class="flex-1 flex flex-col h-full w-full overflow-hidden bg-dark-950 relative z-10">
+  <main class="flex-1 min-w-0 w-full flex flex-col h-full overflow-hidden bg-dark-950 relative z-10">
     
     <!-- Top Bar Navigation (Desktop & Mobile) -->
-    <header class="h-14 border-b border-spider-500/10 px-4 flex items-center justify-between bg-dark-900/70 backdrop-blur-md z-10">
-      <div class="flex items-center gap-3">
+    <header class="h-14 border-b border-spider-500/10 px-2.5 md:px-4 flex items-center justify-between gap-2 bg-dark-900/70 backdrop-blur-md z-10 shrink-0">
+      <div class="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
         <!-- Hamburger Menu for Mobile -->
-        <button id="open-sidebar-btn" class="md:hidden p-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/5">
+        <button id="open-sidebar-btn" type="button" aria-label="Open Menu" class="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0 p-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/5">
           <i data-lucide="menu" class="w-5 h-5"></i>
         </button>
         <!-- Spider Avatar & Active Chat Title -->
-        <div class="flex items-center gap-2.5">
-          <img src="/static/images/spider-avatar.png" alt="Spider Logo" class="w-7 h-7 rounded-lg spider-avatar hidden sm:block object-cover">
-          <div>
-            <h2 id="active-chat-title" class="font-semibold text-xs md:text-sm text-slate-200 max-w-[200px] md:max-w-md truncate">
+        <div class="flex items-center gap-2.5 flex-1 min-w-0 justify-center md:justify-start">
+          <img src="/static/images/spider-avatar.png" alt="Spider Logo" class="w-7 h-7 rounded-lg spider-avatar hidden md:block object-cover shrink-0">
+          <div class="min-w-0 flex-1">
+            <h2 id="active-chat-title" class="font-semibold text-sm text-slate-200 md:max-w-md truncate text-center md:text-left">
               New Conversation
             </h2>
-            <p class="text-[10px] text-slate-400 hidden sm:block">Direct, verified answers with live web grounding</p>
+            <p class="text-[10px] text-slate-400 hidden md:block">Direct, verified answers with live web grounding</p>
           </div>
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1 md:gap-2 shrink-0">
         <!-- Quick Action Trigger Button -->
-        <button id="open-quick-actions-btn" class="hidden sm:flex items-center gap-1.5 text-xs text-slate-300 bg-dark-850 hover:bg-dark-800 border border-spider-500/20 px-2.5 py-1.5 rounded-lg transition-colors">
-          <i data-lucide="zap" class="w-3.5 h-3.5 text-spider-400"></i>
-          <span>Quick Actions</span>
-          <span class="text-[10px] font-mono text-slate-400 bg-white/5 px-1 rounded ml-1">Ctrl+K</span>
+        <button id="open-quick-actions-btn" type="button" title="Quick Actions" aria-label="Quick Actions" class="flex items-center justify-center gap-1.5 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 p-2 md:px-2.5 md:py-1.5 text-xs text-slate-300 bg-dark-850 hover:bg-dark-800 border border-spider-500/20 rounded-lg transition-colors shrink-0">
+          <i data-lucide="zap" class="w-4 h-4 md:w-3.5 md:h-3.5 text-spider-400"></i>
+          <span class="hidden md:inline">Quick Actions</span>
+          <span class="hidden md:inline text-[10px] font-mono text-slate-400 bg-white/5 px-1 rounded ml-1">Ctrl+K</span>
         </button>
         <!-- Clear / Reset Chat -->
-        <button id="header-new-chat-btn" title="Start New Chat" class="p-2 text-slate-400 hover:text-spider-400 rounded-lg hover:bg-white/5 transition-colors">
+        <button id="header-new-chat-btn" type="button" title="Start New Chat" aria-label="Start New Chat" class="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center p-2 text-slate-400 hover:text-spider-400 rounded-lg hover:bg-white/5 transition-colors shrink-0">
           <i data-lucide="square-pen" class="w-4 h-4"></i>
         </button>
       </div>
     </header>
 
+    <!-- iOS Add to Home Screen Banner (Hidden unless iOS Safari browser) -->
+    <div id="ios-install-banner" class="hidden shrink-0 px-3 py-2 bg-dark-900 border-b border-spider-500/20 flex items-center justify-between gap-2 text-xs text-slate-200">
+      <div class="flex items-center gap-2 min-w-0">
+        <img src="/static/images/spider-avatar.png" alt="GoldSea AI" class="w-6 h-6 rounded-md shrink-0">
+        <span class="truncate">Install GoldSea AI: tap <strong>Share</strong> then <strong>Add to Home Screen</strong></span>
+      </div>
+      <button id="dismiss-ios-banner-btn" type="button" aria-label="Dismiss install banner" class="min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-400 hover:text-white shrink-0">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
     <!-- Chat Messages Scroll Area -->
-    <div id="messages-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+    <div id="messages-container" class="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-3 md:p-6 space-y-4 md:space-y-6">
       
       <!-- Welcome & Quick Action Grid (Shown when chat is empty) -->
       <div id="welcome-view" class="max-w-2xl mx-auto py-6 sm:py-10 space-y-8">
@@ -254,15 +265,15 @@
       </div>
 
       <!-- Messages List -->
-      <div id="messages-list" class="max-w-3xl mx-auto space-y-6">
+      <div id="messages-list" class="max-w-3xl w-full min-w-0 mx-auto space-y-5 md:space-y-6">
         <!-- Rendered dynamically -->
       </div>
 
     </div>
 
     <!-- Bottom Input Dock -->
-    <div class="p-3 md:p-4 bg-dark-900/80 backdrop-blur-md border-t border-spider-500/10">
-      <div class="max-w-3xl mx-auto">
+    <div id="input-dock" class="shrink-0 w-full min-w-0 px-2.5 pt-2.5 md:p-4 safe-bottom-dock bg-dark-900/80 backdrop-blur-md border-t border-spider-500/10">
+      <div class="max-w-3xl w-full min-w-0 mx-auto">
         
         <!-- File & Image Attachments Container -->
         <div id="attachments-container" class="hidden mb-2.5 flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1">
@@ -270,18 +281,18 @@
         </div>
 
         <!-- Main Input Container -->
-        <div class="relative flex items-end gap-2 bg-dark-850 border border-spider-500/20 focus-within:border-spider-400/60 rounded-2xl p-2 transition-all shadow-md">
+        <div class="relative flex items-end gap-1 md:gap-2 bg-dark-850 border border-spider-500/20 focus-within:border-spider-400/60 rounded-2xl p-1.5 md:p-2 transition-all shadow-md min-w-0 w-full">
           
           <!-- Hidden File Input -->
           <input type="file" id="file-input" class="hidden" multiple accept="image/png,image/jpeg,image/webp,image/gif,.pdf,.docx,.xlsx,.csv,.txt,.json,.md,.py,.js">
           
           <!-- Attach File Button -->
-          <button id="attach-file-btn" type="button" title="Upload Images, PDFs, Documents, or Code" class="p-2 text-slate-400 hover:text-spider-400 rounded-xl hover:bg-white/5 transition-colors">
+          <button id="attach-file-btn" type="button" title="Upload Images, PDFs, Documents, or Code" class="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center shrink-0 p-2 text-slate-400 hover:text-spider-400 rounded-xl hover:bg-white/5 transition-colors">
             <i data-lucide="paperclip" class="w-5 h-5"></i>
           </button>
 
           <!-- Voice Input Button (Web Speech API + MediaRecorder Fallback) -->
-          <button id="voice-input-btn" type="button" title="Voice Input (Speech-to-Text)" class="relative p-2 text-slate-400 hover:text-spider-400 rounded-xl hover:bg-white/5 transition-all">
+          <button id="voice-input-btn" type="button" title="Voice Input (Speech-to-Text)" class="relative min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center shrink-0 p-2 text-slate-400 hover:text-spider-400 rounded-xl hover:bg-white/5 transition-all">
             <i data-lucide="mic" class="w-5 h-5"></i>
             <span id="mic-status-dot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-spider-400 animate-ping"></span>
           </button>
@@ -291,7 +302,7 @@
             id="chat-input"
             rows="1"
             placeholder="Ask anything direct or paste code / text..."
-            class="flex-1 bg-transparent text-sm text-slate-100 placeholder-slate-400 focus:outline-none resize-none py-2 px-1 max-h-36 leading-relaxed"
+            class="flex-1 min-w-0 bg-transparent text-base md:text-sm text-slate-100 placeholder-slate-400 focus:outline-none resize-none py-2.5 md:py-2 px-1 max-h-36 leading-relaxed md:leading-relaxed"
           ></textarea>
 
           <!-- Send Button -->
@@ -299,7 +310,7 @@
             id="send-btn"
             type="button"
             disabled
-            class="p-2 rounded-xl bg-spider-500 text-dark-950 hover:bg-spider-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 shadow-md shadow-spider-500/20"
+            class="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center shrink-0 p-2 rounded-xl bg-spider-500 text-dark-950 hover:bg-spider-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95 shadow-md shadow-spider-500/20"
           >
             <i data-lucide="arrow-up" class="w-5 h-5 stroke-[2.5]"></i>
           </button>
@@ -307,18 +318,42 @@
         </div>
 
         <!-- Helper hint -->
-        <div class="flex items-center justify-between text-[11px] text-slate-400 px-2 pt-1.5">
-          <span class="flex items-center gap-1.5">
-            <i data-lucide="globe" class="w-3 h-3 text-spider-400"></i>
-            Live web grounding automatic
+        <div class="flex items-center justify-between gap-2 text-[11px] text-slate-400 px-2 pt-1.5 min-w-0">
+          <span class="flex items-center gap-1.5 whitespace-nowrap truncate min-w-0">
+            <i data-lucide="globe" class="w-3 h-3 text-spider-400 shrink-0"></i>
+            <span class="sm:hidden">Live web grounding</span>
+            <span class="hidden sm:inline">Live web grounding automatic</span>
           </span>
-          <span class="hidden sm:inline">Press <kbd class="font-mono bg-white/5 px-1 rounded">Enter</kbd> to send, <kbd class="font-mono bg-white/5 px-1 rounded">Shift+Enter</kbd> for newline</span>
+          <span class="touch-hide hidden md:inline whitespace-nowrap shrink-0">Press <kbd class="font-mono bg-white/5 px-1 rounded">Enter</kbd> to send, <kbd class="font-mono bg-white/5 px-1 rounded">Shift+Enter</kbd> for newline</span>
         </div>
 
       </div>
     </div>
 
   </main>
+
+  <!-- Quick Actions Modal -->
+  <div id="quick-actions-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#0a140e] border border-spider-500/20 rounded-2xl max-w-md w-full p-5 space-y-3">
+      <div class="flex items-center justify-between border-b border-white/5 pb-3">
+        <h3 class="font-bold text-sm text-white flex items-center gap-2">
+          <i data-lucide="zap" class="w-4 h-4 text-spider-400"></i>
+          Quick Actions
+        </h3>
+        <button id="close-quick-actions-btn" type="button" class="p-1.5 text-slate-400 hover:text-white rounded-lg">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="grid grid-cols-1 gap-2">
+        <button data-quick-action="summarize" class="text-left p-3 rounded-xl bg-dark-850 hover:bg-dark-800 border border-white/5 hover:border-spider-500/30 text-xs text-slate-200 transition-colors">Summarize this text</button>
+        <button data-quick-action="grammar" class="text-left p-3 rounded-xl bg-dark-850 hover:bg-dark-800 border border-white/5 hover:border-spider-500/30 text-xs text-slate-200 transition-colors">Fix my grammar</button>
+        <button data-quick-action="eli5" class="text-left p-3 rounded-xl bg-dark-850 hover:bg-dark-800 border border-white/5 hover:border-spider-500/30 text-xs text-slate-200 transition-colors">Explain like I'm new</button>
+        <button data-quick-action="email" class="text-left p-3 rounded-xl bg-dark-850 hover:bg-dark-800 border border-white/5 hover:border-spider-500/30 text-xs text-slate-200 transition-colors">Draft an email</button>
+        <button data-quick-action="debug" class="text-left p-3 rounded-xl bg-dark-850 hover:bg-dark-800 border border-white/5 hover:border-spider-500/30 text-xs text-slate-200 transition-colors">Debug my code</button>
+        <button data-quick-action="plan" class="text-left p-3 rounded-xl bg-dark-850 hover:bg-dark-800 border border-white/5 hover:border-spider-500/30 text-xs text-slate-200 transition-colors">Plan my day</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Keyboard Shortcuts Modal -->
   <div id="shortcuts-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">

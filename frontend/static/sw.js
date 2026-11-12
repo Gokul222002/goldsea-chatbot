@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goldsea-v1';
+const CACHE_NAME = 'goldsea-v2';
 const PRECACHE_ASSETS = [
   '/',
   '/static/css/app.css',
@@ -10,9 +10,8 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(PRECACHE_ASSETS).catch(() => {});
-    })
+    }).then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -25,19 +24,36 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-  // Do not cache API or stream endpoints
-  if (event.request.url.includes('/api/')) {
+  if (event.request.method !== 'GET') {
     return;
   }
+
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+  // Do not cache API or health endpoints
+  if (url.pathname.startsWith('/api/') || url.pathname === '/health') {
+    return;
+  }
+
+  // Network-first for HTML/CSS/JS/static assets so broken old layouts are never stale-served
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
-    })
+    fetch(event.request, { cache: 'no-cache' })
+      .then((response) => {
+        if (response && response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          }).catch(() => {});
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

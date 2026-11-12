@@ -50,14 +50,19 @@
   const closeImageModalBtn = document.getElementById('close-image-modal-btn');
   const toastContainer = document.getElementById('toast-container');
 
-  // Modals
+  // Modals & PWA Banners
   const shortcutsModal = document.getElementById('shortcuts-modal');
   const shortcutsModalBtn = document.getElementById('shortcuts-modal-btn');
   const closeShortcutsBtn = document.getElementById('close-shortcuts-btn');
+  const openQuickActionsBtn = document.getElementById('open-quick-actions-btn');
+  const quickActionsModal = document.getElementById('quick-actions-modal');
+  const closeQuickActionsBtn = document.getElementById('close-quick-actions-btn');
   const exportModal = document.getElementById('export-modal');
   const exportChatBtn = document.getElementById('export-chat-btn');
   const closeExportBtn = document.getElementById('close-export-btn');
   const pwaInstallBtn = document.getElementById('pwa-install-btn');
+  const iosInstallBanner = document.getElementById('ios-install-banner');
+  const dismissIosBannerBtn = document.getElementById('dismiss-ios-banner-btn');
 
   // Format bytes helper
   function formatBytes(bytes, decimals = 1) {
@@ -95,9 +100,13 @@
 
   // Initialize Application
   async function init() {
+    initVisualViewport();
+    closeMobileSidebar();
+    setupDrawerSwipe();
     initLucide();
     initSpeechRecognition();
     initServiceWorker();
+    initIosInstallBanner();
     setupEventListeners();
     setupDragAndDropAndPaste();
     await loadConversations();
@@ -651,6 +660,67 @@
       appendMessageToUI(msg);
     });
     scrollToBottom();
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => scrollToBottom()).catch(() => {});
+    }
+  }
+
+  function buildSourcesHtml(sources) {
+    if (!sources || !sources.length) return '';
+    const pills = sources.map(s => `
+      <a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-dark-800 hover:bg-dark-750 border border-cyan-500/20 text-cyan-400 text-[11px] hover:border-cyan-500/40 transition-colors">
+        <i data-lucide="external-link" class="w-3 h-3"></i>
+        <span class="max-w-[140px] truncate">${escapeHtml(s.title || 'Source')}</span>
+      </a>
+    `).join('');
+    return `
+      <div class="mt-2.5 pt-2 border-t border-white/5 min-w-0">
+        <div class="text-[10px] font-semibold text-slate-400 mb-1.5 flex items-center gap-1">
+          <i data-lucide="check-check" class="w-3 h-3 text-emerald-400"></i>
+          Grounded Sources Verified:
+        </div>
+        <div class="chips-scroll-row flex flex-wrap gap-1.5">${pills}</div>
+      </div>
+    `;
+  }
+
+  function buildChipsHtml(chips) {
+    if (!chips || !chips.length) return '';
+    const chipsList = chips.map(chip => `
+      <button class="follow-up-chip px-3 py-1.5 rounded-full bg-dark-850 hover:bg-dark-800 border border-spider-500/30 hover:border-spider-400/60 text-spider-400 hover:text-spider-300 text-xs font-medium transition-all text-left shadow-sm active:scale-95 flex items-center gap-1.5">
+        <i data-lucide="arrow-right" class="w-3 h-3 text-spider-400"></i>
+        <span>${escapeHtml(chip)}</span>
+      </button>
+    `).join('');
+    return `
+      <div class="mt-3 pt-2.5 border-t border-white/5 space-y-1.5 min-w-0">
+        <div class="text-[11px] font-semibold text-slate-400">Suggested Follow-ups:</div>
+        <div class="chips-scroll-row flex flex-wrap gap-2">${chipsList}</div>
+      </div>
+    `;
+  }
+
+  function buildActionsBarHtml(msgId) {
+    return `
+      <div class="chips-scroll-row mt-2.5 flex items-center gap-1 text-[11px] text-slate-400 border-t border-white/5 pt-2">
+        <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="regenerate" data-msg-id="${msgId}" title="Regenerate this response">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Regenerate</span>
+        </button>
+        <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="shorter" data-msg-id="${msgId}" title="Make shorter">
+          <i data-lucide="minimize-2" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Make shorter</span>
+        </button>
+        <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="detailed" data-msg-id="${msgId}" title="Make more detailed">
+          <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Make more detailed</span>
+        </button>
+        <button class="copy-reply-btn ml-auto hover:text-white p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" title="Copy response">
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          <span class="copy-label hidden sm:inline">Copy</span>
+        </button>
+      </div>
+    `;
   }
 
   function appendMessageToUI(msg) {
@@ -658,7 +728,7 @@
     const isUser = msg.role === 'user';
     const card = document.createElement('div');
     card.id = `msg-${msg.id}`;
-    card.className = `flex flex-col ${isUser ? 'items-end' : 'items-start'} space-y-1.5`;
+    card.className = `flex flex-col ${isUser ? 'items-end' : 'items-start'} space-y-1.5 w-full min-w-0`;
 
     if (isUser) {
       // Clean attachment chips / cards inside user bubble (NEVER raw bytes!)
@@ -682,9 +752,9 @@
             const icon = (att.name || '').endsWith('.pdf') ? 'file-text' : ((att.name || '').endsWith('.xlsx') || (att.name || '').endsWith('.csv')) ? 'sheet' : 'file-code';
             const sizeStr = formatBytes(att.size);
             return `
-              <div class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-dark-900/90 border border-spider-500/25 text-xs text-slate-200 shadow-sm">
+              <div class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-dark-900/90 border border-spider-500/25 text-xs text-slate-200 shadow-sm max-w-full">
                 <i data-lucide="${icon}" class="w-4 h-4 text-spider-400 shrink-0"></i>
-                <div class="flex flex-col text-left max-w-[180px] sm:max-w-[220px]">
+                <div class="flex flex-col text-left max-w-[180px] sm:max-w-[220px] min-w-0">
                   <span class="font-medium truncate text-white text-xs">${escapeHtml(att.name || 'Document')}</span>
                   <span class="text-[10px] text-slate-400 font-mono">${sizeStr}</span>
                 </div>
@@ -696,75 +766,19 @@
       }
 
       card.innerHTML = `
-        <div class="max-w-[85%] sm:max-w-xl rounded-2xl rounded-tr-sm bg-gradient-to-r from-emerald-600/20 to-spider-500/20 border border-spider-500/30 p-3.5 text-xs sm:text-sm text-slate-100 shadow-sm leading-relaxed">
+        <div class="max-w-[92%] md:max-w-xl min-w-0 rounded-2xl rounded-tr-sm bg-gradient-to-r from-emerald-600/20 to-spider-500/20 border border-spider-500/30 p-3.5 text-base md:text-sm text-slate-100 shadow-sm leading-relaxed">
           ${attachmentsHtml}
-          ${msg.content ? `<div class="whitespace-pre-wrap">${escapeHtml(msg.content)}</div>` : ''}
+          ${msg.content ? `<div class="whitespace-pre-wrap msg-user-text">${escapeHtml(msg.content)}</div>` : ''}
         </div>
       `;
     } else {
       const formattedHtml = renderMarkdown(msg.content);
-      
-      // Sources badges if any
-      let sourcesHtml = '';
-      if (msg.sources && msg.sources.length > 0) {
-        const sourcePills = msg.sources.map(s => `
-          <a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-dark-800 hover:bg-dark-750 border border-cyan-500/20 text-cyan-400 text-[11px] hover:border-cyan-500/40 transition-colors">
-            <i data-lucide="external-link" class="w-3 h-3"></i>
-            <span class="max-w-[140px] truncate">${escapeHtml(s.title || 'Source')}</span>
-          </a>
-        `).join('');
-        sourcesHtml = `
-          <div class="mt-2.5 pt-2 border-t border-white/5">
-            <div class="text-[10px] font-semibold text-slate-400 mb-1.5 flex items-center gap-1">
-              <i data-lucide="check-check" class="w-3 h-3 text-emerald-400"></i>
-              Grounded Sources Verified:
-            </div>
-            <div class="flex flex-wrap gap-1.5">${sourcePills}</div>
-          </div>
-        `;
-      }
-
-      // Follow-up chips if any
-      let chipsHtml = '';
-      if (msg.follow_up_chips && msg.follow_up_chips.length > 0) {
-        const chipsList = msg.follow_up_chips.map(chip => `
-          <button class="follow-up-chip px-3 py-1.5 rounded-full bg-dark-850 hover:bg-dark-800 border border-spider-500/30 hover:border-spider-400/60 text-spider-400 hover:text-spider-300 text-xs font-medium transition-all text-left shadow-sm active:scale-95 flex items-center gap-1.5">
-            <i data-lucide="arrow-right" class="w-3 h-3 text-spider-400"></i>
-            <span>${escapeHtml(chip)}</span>
-          </button>
-        `).join('');
-        chipsHtml = `
-          <div class="mt-3 pt-2.5 border-t border-white/5 space-y-1.5">
-            <div class="text-[11px] font-semibold text-slate-400">Suggested Follow-ups:</div>
-            <div class="flex flex-wrap gap-2">${chipsList}</div>
-          </div>
-        `;
-      }
-
-      // Per-reply Action Buttons
-      const actionsBarHtml = `
-        <div class="mt-2.5 flex items-center gap-1 text-[11px] text-slate-400 border-t border-white/5 pt-2">
-          <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="regenerate" data-msg-id="${msg.id}" title="Regenerate this response">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-            <span class="hidden sm:inline">Regenerate</span>
-          </button>
-          <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="shorter" data-msg-id="${msg.id}" title="Make shorter">
-            <i data-lucide="minimize-2" class="w-3.5 h-3.5"></i>
-            <span class="hidden sm:inline">Make shorter</span>
-          </button>
-          <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="detailed" data-msg-id="${msg.id}" title="Make more detailed">
-            <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
-            <span class="hidden sm:inline">Make more detailed</span>
-          </button>
-          <button class="copy-reply-btn ml-auto hover:text-white p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" title="Copy response">
-            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-            <span class="copy-label hidden sm:inline">Copy</span>
-          </button>
-        </div>
-      `;
+      const sourcesHtml = buildSourcesHtml(msg.sources);
+      const chipsHtml = buildChipsHtml(msg.follow_up_chips);
+      const actionsBarHtml = buildActionsBarHtml(msg.id);
 
       card.innerHTML = `
-        <div class="max-w-[95%] sm:max-w-2xl rounded-2xl rounded-tl-sm bg-dark-900 border border-spider-500/15 p-4 shadow-md w-full">
+        <div class="max-w-[92%] md:max-w-2xl min-w-0 rounded-2xl rounded-tl-sm bg-dark-900 border border-spider-500/15 p-3.5 md:p-4 shadow-md w-full">
           <div class="flex items-center gap-2 mb-2.5 pb-2 border-b border-spider-500/10">
             <img src="/static/images/spider-avatar.png" alt="Spider Avatar" class="w-5 h-5 rounded-full spider-avatar object-cover">
             <span class="text-xs font-semibold text-spider-400">GoldSea AI</span>
@@ -814,7 +828,17 @@
     if (!raw) return '';
     try {
       const parsed = marked.parse(raw, { gfm: true, breaks: true });
-      return DOMPurify.sanitize(parsed);
+      const clean = DOMPurify.sanitize(parsed);
+      const tmp = document.createElement('div');
+      tmp.innerHTML = clean;
+      tmp.querySelectorAll('table').forEach(tbl => {
+        if (tbl.parentElement && tbl.parentElement.classList.contains('table-scroll-wrap')) return;
+        const wrap = document.createElement('div');
+        wrap.className = 'table-scroll-wrap';
+        tbl.parentNode.insertBefore(wrap, tbl);
+        wrap.appendChild(tbl);
+      });
+      return tmp.innerHTML;
     } catch (e) {
       return escapeHtml(raw);
     }
@@ -864,9 +888,9 @@
     const assistantMsgId = 'msg_' + Date.now();
     const assistantCard = document.createElement('div');
     assistantCard.id = `msg-${assistantMsgId}`;
-    assistantCard.className = 'flex flex-col items-start space-y-1.5 w-full';
+    assistantCard.className = 'flex flex-col items-start space-y-1.5 w-full min-w-0';
     assistantCard.innerHTML = `
-      <div class="max-w-[95%] sm:max-w-2xl rounded-2xl rounded-tl-sm bg-dark-900 border border-spider-500/15 p-4 shadow-md w-full">
+      <div class="max-w-[92%] md:max-w-2xl min-w-0 rounded-2xl rounded-tl-sm bg-dark-900 border border-spider-500/15 p-3.5 md:p-4 shadow-md w-full">
         <div class="flex items-center gap-2 mb-2.5 pb-2 border-b border-spider-500/10">
           <img src="/static/images/spider-avatar.png" alt="Spider Avatar" class="w-5 h-5 rounded-full spider-avatar object-cover animate-pulse">
           <span class="text-xs font-semibold text-spider-400">GoldSea AI</span>
@@ -975,21 +999,7 @@
   function renderSourcesInStream(msgId, sources) {
     const container = document.getElementById(`stream-sources-${msgId}`);
     if (!container || !sources.length) return;
-    const pills = sources.map(s => `
-      <a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-dark-800 hover:bg-dark-750 border border-cyan-500/20 text-cyan-400 text-[11px] hover:border-cyan-500/40 transition-colors">
-        <i data-lucide="external-link" class="w-3 h-3"></i>
-        <span class="max-w-[140px] truncate">${escapeHtml(s.title || 'Source')}</span>
-      </a>
-    `).join('');
-    container.innerHTML = `
-      <div class="mt-2.5 pt-2 border-t border-white/5">
-        <div class="text-[10px] font-semibold text-slate-400 mb-1.5 flex items-center gap-1">
-          <i data-lucide="check-check" class="w-3 h-3 text-emerald-400"></i>
-          Grounded Sources Verified:
-        </div>
-        <div class="flex flex-wrap gap-1.5">${pills}</div>
-      </div>
-    `;
+    container.innerHTML = buildSourcesHtml(sources);
     initLucide();
   }
 
@@ -1003,18 +1013,7 @@
     // Render chips
     const chipsContainer = document.getElementById(`stream-chips-${msgId}`);
     if (chipsContainer && chips && chips.length > 0) {
-      const chipsList = chips.map(chip => `
-        <button class="follow-up-chip px-3 py-1.5 rounded-full bg-dark-850 hover:bg-dark-800 border border-spider-500/30 hover:border-spider-400/60 text-spider-400 hover:text-spider-300 text-xs font-medium transition-all text-left shadow-sm active:scale-95 flex items-center gap-1.5">
-          <i data-lucide="arrow-right" class="w-3 h-3"></i>
-          <span>${escapeHtml(chip)}</span>
-        </button>
-      `).join('');
-      chipsContainer.innerHTML = `
-        <div class="mt-3 pt-2.5 border-t border-white/5 space-y-1.5">
-          <div class="text-[11px] font-semibold text-slate-400">Suggested Follow-ups:</div>
-          <div class="flex flex-wrap gap-2">${chipsList}</div>
-        </div>
-      `;
+      chipsContainer.innerHTML = buildChipsHtml(chips);
 
       chipsContainer.querySelectorAll('.follow-up-chip').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1027,25 +1026,8 @@
     // Render actions bar
     const actionsContainer = document.getElementById(`stream-actions-${msgId}`);
     if (actionsContainer) {
-      actionsContainer.className = "mt-2.5 flex items-center gap-1 text-[11px] text-slate-400 border-t border-white/5 pt-2";
-      actionsContainer.innerHTML = `
-        <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="regenerate" data-msg-id="${msgId}">
-          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-          <span class="hidden sm:inline">Regenerate</span>
-        </button>
-        <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="shorter" data-msg-id="${msgId}">
-          <i data-lucide="minimize-2" class="w-3.5 h-3.5"></i>
-          <span class="hidden sm:inline">Make shorter</span>
-        </button>
-        <button class="per-reply-btn hover:text-spider-400 p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors" data-action="detailed" data-msg-id="${msgId}">
-          <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
-          <span class="hidden sm:inline">Make more detailed</span>
-        </button>
-        <button class="copy-reply-btn ml-auto hover:text-white p-1.5 rounded-md hover:bg-white/5 flex items-center gap-1 transition-colors">
-          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-          <span class="copy-label hidden sm:inline">Copy</span>
-        </button>
-      `;
+      actionsContainer.className = '';
+      actionsContainer.innerHTML = buildActionsBarHtml(msgId);
 
       actionsContainer.querySelectorAll('.per-reply-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1070,7 +1052,7 @@
 
   function renderErrorState(card, errorMessage, queryToRetry) {
     card.innerHTML = `
-      <div class="max-w-[95%] sm:max-w-xl rounded-2xl bg-rose-950/30 border border-rose-500/30 p-4 space-y-3">
+      <div class="max-w-[92%] md:max-w-xl min-w-0 rounded-2xl bg-rose-950/30 border border-rose-500/30 p-4 space-y-3">
         <div class="flex items-center gap-2 text-rose-400 font-semibold text-xs">
           <i data-lucide="alert-circle" class="w-4 h-4"></i>
           <span>${escapeHtml(errorMessage)}</span>
@@ -1103,9 +1085,9 @@
                        'Expanding with comprehensive detail...';
 
     const placeholderCard = document.createElement('div');
-    placeholderCard.className = 'flex flex-col items-start space-y-1.5 w-full';
+    placeholderCard.className = 'flex flex-col items-start space-y-1.5 w-full min-w-0';
     placeholderCard.innerHTML = `
-      <div class="max-w-[95%] sm:max-w-2xl rounded-2xl bg-dark-900 border border-white/5 p-4 text-xs text-slate-400 flex items-center gap-2">
+      <div class="max-w-[92%] md:max-w-2xl min-w-0 rounded-2xl bg-dark-900 border border-white/5 p-4 text-xs text-slate-400 flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-spider-400 animate-ping"></span>
         <span>${actionText}</span>
       </div>
@@ -1141,7 +1123,7 @@
     }
   }
 
-  // --- Quick Actions Grid ---
+  // --- Quick Actions Grid & Modal ---
   function setupQuickActions() {
     document.querySelectorAll('[data-quick-action]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1155,7 +1137,10 @@
           plan: "Plan my day with a time-blocked schedule for:\n\n"
         };
         chatInput.value = templates[action] || '';
-        hideWelcome();
+        if (quickActionsModal) quickActionsModal.classList.add('hidden');
+        if (!currentConversationId && messagesList.children.length === 0) {
+          hideWelcome();
+        }
         chatInput.focus();
         updateSendButtonState();
         autoResizeInput();
@@ -1196,6 +1181,19 @@
     // Search input for conversations
     searchConvInput.addEventListener('input', renderConversationsList);
 
+    // Quick Actions Modal
+    if (openQuickActionsBtn && quickActionsModal) {
+      openQuickActionsBtn.addEventListener('click', () => quickActionsModal.classList.remove('hidden'));
+    }
+    if (closeQuickActionsBtn && quickActionsModal) {
+      closeQuickActionsBtn.addEventListener('click', () => quickActionsModal.classList.add('hidden'));
+    }
+    if (quickActionsModal) {
+      quickActionsModal.addEventListener('click', (e) => {
+        if (e.target === quickActionsModal) quickActionsModal.classList.add('hidden');
+      });
+    }
+
     // Shortcuts Modal
     shortcutsModalBtn.addEventListener('click', () => shortcutsModal.classList.remove('hidden'));
     closeShortcutsBtn.addEventListener('click', () => shortcutsModal.classList.add('hidden'));
@@ -1233,6 +1231,7 @@
         shortcutsModal.classList.toggle('hidden');
       } else if (e.key === 'Escape') {
         shortcutsModal.classList.add('hidden');
+        if (quickActionsModal) quickActionsModal.classList.add('hidden');
         exportModal.classList.add('hidden');
         if (imageModal) imageModal.classList.add('hidden');
         closeMobileSidebar();
@@ -1243,13 +1242,73 @@
     setupQuickActions();
   }
 
+  function initVisualViewport() {
+    const updateAppHeight = () => {
+      const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+      document.documentElement.style.setProperty('--app-height', `${h}px`);
+      if (window.scrollY !== 0) {
+        window.scrollTo(0, 0);
+      }
+    };
+    updateAppHeight();
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', updateAppHeight);
+      window.visualViewport.addEventListener('scroll', updateAppHeight);
+    }
+    window.addEventListener('resize', () => {
+      updateAppHeight();
+      if (window.innerWidth >= 768) {
+        sidebarBackdrop.classList.add('hidden');
+        sidebar.setAttribute('aria-hidden', 'false');
+      }
+    });
+    chatInput.addEventListener('focus', () => {
+      if (window.innerWidth < 768) {
+        setTimeout(scrollToBottom, 150);
+      }
+    });
+  }
+
+  function setupDrawerSwipe() {
+    if (!sidebar) return;
+    let startX = null;
+    let startY = null;
+    sidebar.addEventListener('touchstart', (e) => {
+      if (window.innerWidth >= 768) return;
+      const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
+      if (!t) return;
+      startX = t.clientX;
+      startY = t.clientY;
+    }, { passive: true });
+    sidebar.addEventListener('touchend', (e) => {
+      if (startX === null || window.innerWidth >= 768) {
+        startX = null;
+        return;
+      }
+      const t = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
+      if (!t) {
+        startX = null;
+        return;
+      }
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      if (dx < -45 && Math.abs(dx) > Math.abs(dy)) {
+        closeMobileSidebar();
+      }
+      startX = null;
+      startY = null;
+    }, { passive: true });
+  }
+
   function openMobileSidebar() {
     sidebar.classList.remove('-translate-x-full');
+    sidebar.setAttribute('aria-hidden', 'false');
     sidebarBackdrop.classList.remove('hidden');
   }
 
   function closeMobileSidebar() {
     sidebar.classList.add('-translate-x-full');
+    sidebar.setAttribute('aria-hidden', window.innerWidth < 768 ? 'true' : 'false');
     sidebarBackdrop.classList.add('hidden');
   }
 
@@ -1274,11 +1333,13 @@
       .replace(/'/g, '&#039;');
   }
 
-  // --- PWA Service Worker ---
+  // --- PWA Service Worker & Install Banners ---
   function initServiceWorker() {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => reg.update().catch(() => {}))
+          .catch(() => {});
       });
     }
 
@@ -1300,6 +1361,23 @@
           }
           deferredPrompt = null;
         }
+      });
+    }
+  }
+
+  function initIosInstallBanner() {
+    if (!iosInstallBanner) return;
+    const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    const isStandalone = ('standalone' in window.navigator && window.navigator.standalone) ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    const dismissed = localStorage.getItem('goldsea_ios_a2hs_dismissed') === '1';
+    if (isIos && !isStandalone && !dismissed) {
+      iosInstallBanner.classList.remove('hidden');
+    }
+    if (dismissIosBannerBtn) {
+      dismissIosBannerBtn.addEventListener('click', () => {
+        iosInstallBanner.classList.add('hidden');
+        localStorage.setItem('goldsea_ios_a2hs_dismissed', '1');
       });
     }
   }

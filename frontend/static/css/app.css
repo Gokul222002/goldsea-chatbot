@@ -14,10 +14,18 @@
   --border-glow: rgba(34, 197, 94, 0.35);
 }
 
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-main);
+  height: 100dvh;
+  height: var(--app-height, 100dvh);
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
   position: relative;
@@ -28,12 +36,55 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
+  max-width: 100vw;
+  overflow: hidden;
   background-image: url('/static/images/spider.jpg');
   background-size: cover;
   background-position: center 35%;
   opacity: 0.055;
   pointer-events: none;
   z-index: 0;
+}
+
+.safe-bottom-dock {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+@media (min-width: 768px) {
+  .safe-bottom-dock {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .touch-hide {
+    display: none !important;
+  }
+}
+
+.chips-scroll-row {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.chips-scroll-row::-webkit-scrollbar {
+  display: none;
+}
+@media (max-width: 767px) {
+  .chips-scroll-row {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    padding-bottom: 0.25rem;
+  }
+  .chips-scroll-row > * {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
+#chat-input::placeholder {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 code, pre {
@@ -61,6 +112,20 @@ code, pre {
   color: #e2e8f0;
   line-height: 1.65;
   font-size: 0.95rem;
+  min-width: 0;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+@media (max-width: 767px) {
+  .prose {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+}
+.msg-user-text {
+  word-break: normal;
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 .prose p {
   margin-bottom: 0.75rem;
@@ -93,7 +158,30 @@ code, pre {
   border-radius: 0.65rem;
   padding: 0.85rem 1rem;
   overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
   margin: 0.75rem 0;
+}
+.table-scroll-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 767px) {
+  .table-scroll-wrap {
+    margin: 0.75rem 0;
+  }
+  .table-scroll-wrap table {
+    width: max-content;
+    min-width: 100%;
+  }
+  .table-scroll-wrap th,
+  .table-scroll-wrap td {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
 }
 .prose code:not(pre code) {
   background: rgba(34, 197, 94, 0.12);
@@ -101,12 +189,16 @@ code, pre {
   padding: 0.15rem 0.35rem;
   border-radius: 0.25rem;
   font-size: 0.85em;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 .prose a {
   color: #38bdf8;
   text-decoration: underline;
   text-underline-offset: 3px;
   transition: color 0.15s ease;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 .prose a:hover {
   color: #7dd3fc;
