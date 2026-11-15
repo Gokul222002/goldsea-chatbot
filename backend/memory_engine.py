@@ -1,6 +1,7 @@
 import re
 from typing import List, Dict, Any, Optional
 from backend.database import save_memory, get_all_memories
+from backend.security import contains_sensitive_data
 
 MEMORY_EXTRACTION_RULES = [
     # Name patterns: strictly "my name is X" or "call me X" with capitalized alphabetic name
@@ -14,7 +15,14 @@ MEMORY_EXTRACTION_RULES = [
     (r"(?:i work as a?|my job is a?)\s+([a-zA-Z\s]{3,40})", "profession", "profile"),
 ]
 
-def extract_and_save_memories(message: str) -> List[Dict[str, str]]:
+def extract_and_save_memories(message: str, user_id: Optional[str] = None) -> List[Dict[str, str]]:
+    if not user_id:
+        return []
+
+    # Filter out sensitive credentials, payment cards, SSNs
+    if contains_sensitive_data(message):
+        return []
+
     saved = []
     text = message.strip()
     
@@ -28,6 +36,8 @@ def extract_and_save_memories(message: str) -> List[Dict[str, str]]:
                 captured = match.group(1).strip()
                 # Clean captured value
                 captured = re.sub(r"^(to|that)\s+", "", captured, flags=re.I)
+                if contains_sensitive_data(captured):
+                    continue
                 key = key_prefix
                 if key == "preference":
                     key = f"pref_{captured[:20].lower().replace(' ', '_')}"
@@ -35,7 +45,7 @@ def extract_and_save_memories(message: str) -> List[Dict[str, str]]:
             else:
                 continue
                 
-            save_memory(key=key, value=val, category=category)
+            save_memory(user_id=user_id, key=key, value=val, category=category)
             saved.append({"key": key, "value": val, "category": category})
             
     return saved

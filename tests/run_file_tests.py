@@ -327,6 +327,19 @@ async def run_all_tests():
 
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test", timeout=45.0) as client:
+        # Authenticate test client
+        from backend.email_service import get_last_email_code
+        test_email = "tester_files@goldsea.local"
+        test_pwd = "TestPassword123!"
+        await client.post("/api/auth/signup", json={"name": "File Tester", "email": test_email, "password": test_pwd, "confirm_password": test_pwd})
+        test_code = get_last_email_code(test_email)
+        if test_code:
+            await client.post("/api/auth/verify-email", json={"email": test_email, "code": test_code})
+        else:
+            await client.post("/api/auth/login", json={"email": test_email, "password": test_pwd})
+        csrf_res = await client.get("/api/auth/csrf")
+        if csrf_res.status_code == 200:
+            client.headers["X-CSRF-Token"] = csrf_res.json().get("csrf_token", "")
         
         test_results = []
 

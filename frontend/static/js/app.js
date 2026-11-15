@@ -20,6 +20,55 @@
   let silenceTimer = null;
   let deferredPrompt = null;
 
+  // --- Auth & Session State ---
+  let currentUser = null;
+  let csrfToken = null;
+  let pendingEmail = '';
+  let resendTimerInterval = null;
+
+  async function fetchCsrfToken() {
+    try {
+      const res = await fetch('/api/auth/csrf', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        csrfToken = data.csrf_token;
+      }
+    } catch (e) {
+      console.warn('Failed to fetch CSRF token', e);
+    }
+  }
+
+  // Wrapper for all authenticated API requests
+  async function authFetch(url, options = {}) {
+    options.credentials = 'include';
+    options.headers = options.headers || {};
+    const method = (options.method || 'GET').toUpperCase();
+    if (csrfToken && !['GET', 'HEAD'].includes(method)) {
+      if (options.headers instanceof Headers) {
+        options.headers.set('X-CSRF-Token', csrfToken);
+      } else {
+        options.headers['X-CSRF-Token'] = csrfToken;
+      }
+    }
+    const res = await fetch(url, options);
+    if (res.status === 401) {
+      currentUser = null;
+      showAuthScreen('login');
+      return res;
+    }
+    if (res.status === 403) {
+      const clone = res.clone();
+      try {
+        const err = await clone.json();
+        if (err.detail && err.detail.toLowerCase().includes('verification required')) {
+          showAuthScreen('verify');
+        }
+      } catch (_) {}
+      return res;
+    }
+    return res;
+  }
+
   // DOM Elements
   const messagesContainer = document.getElementById('messages-container');
   const messagesList = document.getElementById('messages-list');
@@ -109,11 +158,18 @@
     initIosInstallBanner();
     setupEventListeners();
     setupDragAndDropAndPaste();
-    await loadConversations();
-    if (currentConversationId) {
-      await loadConversationMessages(currentConversationId);
-    } else {
-      showWelcome();
+    setupAuthHandlers();
+    setupAccountSettingsHandlers();
+
+    await fetchCsrfToken();
+    const authenticated = await checkAuthState();
+    if (authenticated) {
+      await loadConversations();
+      if (currentConversationId) {
+        await loadConversationMessages(currentConversationId);
+      } else {
+        showWelcome();
+      }
     }
   }
 
@@ -284,7 +340,7 @@
           try {
             const formData = new FormData();
             formData.append('file', audioBlob, 'recording.webm');
-            const res = await fetch('/api/chat/transcribe', {
+            const res = await authFetch('/api/chat/transcribe', {
               method: 'POST',
               body: formData
             });
@@ -406,7 +462,7 @@
       try {
         const formData = new FormData();
         formData.append('file', file);
-        const res = await fetch('/api/chat/upload', {
+        const res = await authFetch('/api/chat/upload', {
           method: 'POST',
           body: formData
         });
@@ -528,7 +584,7 @@
   // --- Conversations Management ---
   async function loadConversations() {
     try {
-      const res = await fetch('/api/conversations');
+      const res = await authFetch('/api/conversations');
       if (res.ok) {
         conversations = await res.json();
         renderConversationsList();
@@ -600,7 +656,7 @@
 
   async function loadConversationMessages(convId) {
     try {
-      const res = await fetch(`/api/conversations/${convId}`);
+      const res = await authFetch(`/api/conversations/${convId}`);
       if (!res.ok) {
         startNewChat();
         return;
@@ -615,7 +671,7 @@
 
   async function deleteConversation(convId) {
     try {
-      await fetch(`/api/conversations/${convId}`, { method: 'DELETE' });
+      await authFetch(`/api/conversations/${convId}`, { method: 'DELETE' });
       conversations = conversations.filter(c => c.id !== convId);
       if (currentConversationId === convId) {
         startNewChat();
@@ -914,7 +970,7 @@
     let accumulatedChips = [];
 
     try {
-      const response = await fetch('/api/chat/stream', {
+      const response = await authFetch('/api/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1096,7 +1152,7 @@
     scrollToBottom();
 
     try {
-      const res = await fetch('/api/chat/per-reply-action', {
+      const res = await authFetch('/api/chat/per-reply-action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1199,14 +1255,18 @@
     closeShortcutsBtn.addEventListener('click', () => shortcutsModal.classList.add('hidden'));
 
     // Export Modal
-    exportChatBtn.addEventListener('click', () => {
-      if (!currentConversationId) {
-        showToast('Please select or start a conversation first.', 'info');
-        return;
-      }
-      exportModal.classList.remove('hidden');
-    });
-    closeExportBtn.addEventListener('click', () => exportModal.classList.add('hidden'));
+    if (exportChatBtn) {
+      exportChatBtn.addEventListener('click', () => {
+        if (!currentConversationId) {
+          showToast('Please select or start a conversation first.', 'info');
+          return;
+        }
+        exportModal.classList.remove('hidden');
+      });
+    }
+    if (closeExportBtn) {
+      closeExportBtn.addEventListener('click', () => exportModal.classList.add('hidden'));
+    }
 
     document.querySelectorAll('.export-format-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1234,12 +1294,889 @@
         if (quickActionsModal) quickActionsModal.classList.add('hidden');
         exportModal.classList.add('hidden');
         if (imageModal) imageModal.classList.add('hidden');
+        const accModal = document.getElementById('account-settings-modal');
+        if (accModal) accModal.classList.add('hidden');
         closeMobileSidebar();
       }
     });
 
     setupFileHandling();
     setupQuickActions();
+  }
+
+  // --- Authentication & User Account Module ---
+  async function checkAuthState() {
+    try {
+      const res = await fetch('/api/auth/me', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        currentUser = data.user;
+        updateUserUI(currentUser);
+        hideAuthScreen();
+        return true;
+      } else if (res.status === 403) {
+        const data = await res.json().catch(() => ({}));
+        if (data.user) {
+          pendingEmail = data.user.email;
+          const displayEl = document.getElementById('verify-email-display');
+          if (displayEl) displayEl.textContent = pendingEmail;
+        }
+        showAuthScreen('verify');
+        return false;
+      } else {
+        currentUser = null;
+        showAuthScreen('login');
+        return false;
+      }
+    } catch (e) {
+      currentUser = null;
+      showAuthScreen('login');
+      return false;
+    }
+  }
+
+  function updateUserUI(user) {
+    if (!user) return;
+    const initial = (user.name || 'U').trim().charAt(0).toUpperCase();
+    const avatar = document.getElementById('user-avatar-initial');
+    const nameEl = document.getElementById('user-display-name');
+    const welcomeName = document.getElementById('welcome-user-name');
+    const settingsName = document.getElementById('settings-user-name');
+    const settingsEmail = document.getElementById('settings-user-email');
+
+    if (avatar) avatar.textContent = initial;
+    if (nameEl) nameEl.textContent = user.name;
+    if (welcomeName) welcomeName.textContent = user.name;
+    if (settingsName) settingsName.textContent = user.name;
+    if (settingsEmail) settingsEmail.textContent = user.email;
+  }
+
+  function showAuthScreen(screen) {
+    const authView = document.getElementById('auth-view');
+    if (!authView) return;
+    authView.classList.remove('hidden');
+
+    const views = {
+      login: document.getElementById('auth-login-view'),
+      signup: document.getElementById('auth-signup-view'),
+      verify: document.getElementById('auth-verify-view'),
+      forgot: document.getElementById('auth-forgot-view'),
+      reset: document.getElementById('auth-reset-view')
+    };
+
+    const subtitles = {
+      login: 'Sign in to access your private conversations and cloud memory.',
+      signup: 'Create your secure account with encrypted private cloud storage.',
+      verify: 'Enter your 6-digit email verification code to proceed.',
+      forgot: 'Enter your account email to receive a password reset code.',
+      reset: 'Enter the 6-digit reset code and set your new password.'
+    };
+
+    Object.keys(views).forEach(k => {
+      if (views[k]) views[k].classList.add('hidden');
+    });
+
+    if (views[screen]) {
+      views[screen].classList.remove('hidden');
+    }
+
+    const subtitleEl = document.getElementById('auth-screen-subtitle');
+    if (subtitleEl && subtitles[screen]) {
+      subtitleEl.textContent = subtitles[screen];
+    }
+
+    // Reset error banners
+    ['login-error', 'signup-error', 'verify-error', 'forgot-error', 'reset-error'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = '';
+        el.classList.add('hidden');
+      }
+    });
+
+    if (screen === 'verify') {
+      const d0 = document.getElementById('digit-0');
+      if (d0) setTimeout(() => d0.focus(), 100);
+      startResendCountdown(60);
+    } else if (screen === 'reset') {
+      const r0 = document.getElementById('reset-digit-0');
+      if (r0) setTimeout(() => r0.focus(), 100);
+    }
+
+    initLucide();
+  }
+
+  function hideAuthScreen() {
+    const authView = document.getElementById('auth-view');
+    if (authView) authView.classList.add('hidden');
+    if (resendTimerInterval) clearInterval(resendTimerInterval);
+  }
+
+  function setupDigitInputs(containerId, submitCallback) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const inputs = Array.from(container.querySelectorAll('.digit-box'));
+
+    inputs.forEach((input, idx) => {
+      input.addEventListener('input', (e) => {
+        const val = e.target.value.replace(/[^0-9]/g, '');
+        e.target.value = val ? val[0] : '';
+        if (val) {
+          e.target.classList.add('filled');
+          if (idx < inputs.length - 1) {
+            inputs[idx + 1].focus();
+          } else {
+            const fullCode = inputs.map(i => i.value).join('');
+            if (fullCode.length === 6 && submitCallback) {
+              submitCallback(fullCode);
+            }
+          }
+        } else {
+          e.target.classList.remove('filled');
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+          inputs[idx - 1].focus();
+        }
+      });
+
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text') || '';
+        const digits = pasted.replace(/[^0-9]/g, '').slice(0, 6);
+        if (digits) {
+          digits.split('').forEach((d, i) => {
+            if (inputs[i]) {
+              inputs[i].value = d;
+              inputs[i].classList.add('filled');
+            }
+          });
+          const nextIndex = Math.min(digits.length, inputs.length - 1);
+          inputs[nextIndex].focus();
+          if (digits.length === 6 && submitCallback) {
+            submitCallback(digits);
+          }
+        }
+      });
+    });
+  }
+
+  function calculatePasswordStrength(pwd) {
+    if (!pwd || pwd.length < 8) return 0;
+    let score = 1;
+    if (pwd.length >= 12) score++;
+    if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    return Math.min(score, 4);
+  }
+
+  function updatePasswordStrengthMeter(pwd, barIds, labelId) {
+    const score = calculatePasswordStrength(pwd);
+    const bars = barIds.map(id => document.getElementById(id));
+    const label = document.getElementById(labelId);
+    
+    const colors = ['bg-rose-500', 'bg-amber-500', 'bg-yellow-400', 'bg-spider-400'];
+    const names = ['Too short (min 8 chars)', 'Weak', 'Fair', 'Strong', 'Very strong'];
+
+    bars.forEach((b, i) => {
+      if (!b) return;
+      b.className = 'strength-bar flex-1';
+      if (score > i) {
+        b.classList.add(colors[score - 1]);
+      } else {
+        b.classList.add('bg-white/10');
+      }
+    });
+
+    if (label) {
+      label.textContent = pwd.length < 8 ? 'Password strength: min 8 characters required' : `Password strength: ${names[score]}`;
+      label.className = `text-[10px] ${score >= 3 ? 'text-spider-400' : (score === 2 ? 'text-yellow-400' : 'text-slate-400')}`;
+    }
+  }
+
+  function setupPasswordToggles() {
+    document.querySelectorAll('.toggle-password-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        if (!input) return;
+        const isPass = input.type === 'password';
+        input.type = isPass ? 'text' : 'password';
+        btn.innerHTML = `<i data-lucide="${isPass ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
+        initLucide();
+      });
+    });
+  }
+
+  function startResendCountdown(seconds) {
+    const resendBtn = document.getElementById('verify-resend-btn');
+    const countdownEl = document.getElementById('resend-countdown');
+    if (!resendBtn || !countdownEl) return;
+
+    if (resendTimerInterval) clearInterval(resendTimerInterval);
+    let remaining = seconds;
+    resendBtn.disabled = true;
+    countdownEl.textContent = remaining;
+
+    resendTimerInterval = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(resendTimerInterval);
+        resendBtn.disabled = false;
+        resendBtn.innerHTML = 'Resend Code';
+      } else {
+        countdownEl.textContent = remaining;
+      }
+    }, 1000);
+  }
+
+  function setupAuthHandlers() {
+    setupPasswordToggles();
+
+    // Digits auto-advance & paste
+    setupDigitInputs('verify-digits-container', (code) => {
+      handleVerifySubmit(code);
+    });
+    setupDigitInputs('reset-digits-container', null);
+
+    // Screen switches
+    const switchToSignup = document.getElementById('switch-to-signup-btn');
+    if (switchToSignup) switchToSignup.addEventListener('click', () => showAuthScreen('signup'));
+
+    const switchToLogin = document.getElementById('switch-to-login-btn');
+    if (switchToLogin) switchToLogin.addEventListener('click', () => showAuthScreen('login'));
+
+    const forgotLink = document.getElementById('login-forgot-link');
+    if (forgotLink) forgotLink.addEventListener('click', () => showAuthScreen('forgot'));
+
+    const forgotBack = document.getElementById('forgot-back-to-login-btn');
+    if (forgotBack) forgotBack.addEventListener('click', () => showAuthScreen('login'));
+
+    const resetBack = document.getElementById('reset-back-to-login-btn');
+    if (resetBack) resetBack.addEventListener('click', () => showAuthScreen('login'));
+
+    const diffEmail = document.getElementById('verify-diff-email-btn');
+    if (diffEmail) {
+      diffEmail.addEventListener('click', async () => {
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+        currentUser = null;
+        showAuthScreen('login');
+      });
+    }
+
+    // Password strength listener on signup
+    const signupPass = document.getElementById('signup-password');
+    if (signupPass) {
+      signupPass.addEventListener('input', (e) => {
+        updatePasswordStrengthMeter(
+          e.target.value,
+          ['pw-bar-1', 'pw-bar-2', 'pw-bar-3', 'pw-bar-4'],
+          'pw-strength-label'
+        );
+      });
+    }
+
+    // Login Form Submit
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const errEl = document.getElementById('login-error');
+        const submitBtn = document.getElementById('login-submit-btn');
+        errEl.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Signing In...</span>';
+
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email, password })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            await fetchCsrfToken();
+            currentUser = data.user;
+            updateUserUI(currentUser);
+            hideAuthScreen();
+            await loadConversations();
+            if (currentConversationId) {
+              await loadConversationMessages(currentConversationId);
+            } else {
+              showWelcome();
+            }
+          } else if (res.status === 403) {
+            pendingEmail = email;
+            const disp = document.getElementById('verify-email-display');
+            if (disp) disp.textContent = pendingEmail;
+            showAuthScreen('verify');
+          } else {
+            errEl.textContent = data.detail || 'Invalid email or password.';
+            errEl.classList.remove('hidden');
+          }
+        } catch (err) {
+          errEl.textContent = 'Connection error. Please try again.';
+          errEl.classList.remove('hidden');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Sign In</span>';
+        }
+      });
+    }
+
+    // Signup Form Submit
+    const signupForm = document.getElementById('signup-form');
+    if (signupForm) {
+      signupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('signup-name').value.trim();
+        const email = document.getElementById('signup-email').value.trim();
+        const password = document.getElementById('signup-password').value;
+        const confirmPassword = document.getElementById('signup-confirm-password').value;
+        const errEl = document.getElementById('signup-error');
+        const submitBtn = document.getElementById('signup-submit-btn');
+
+        errEl.classList.add('hidden');
+        if (password !== confirmPassword) {
+          errEl.textContent = 'Passwords do not match.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Creating Account...</span>';
+
+        try {
+          const res = await fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ name, email, password, confirm_password: confirmPassword })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            await fetchCsrfToken();
+            pendingEmail = email;
+            const disp = document.getElementById('verify-email-display');
+            if (disp) disp.textContent = pendingEmail;
+            showAuthScreen('verify');
+            showToast('Account created! Please enter your 6-digit verification code.', 'info');
+          } else {
+            errEl.textContent = data.detail || 'Sign up failed.';
+            errEl.classList.remove('hidden');
+          }
+        } catch (err) {
+          errEl.textContent = 'Connection error. Please try again.';
+          errEl.classList.remove('hidden');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Create Account</span>';
+        }
+      });
+    }
+
+    // Verification Submit
+    async function handleVerifySubmit(codeOverride) {
+      let code = codeOverride;
+      if (!code) {
+        const inputs = Array.from(document.querySelectorAll('#verify-digits-container .digit-box'));
+        code = inputs.map(i => i.value.trim()).join('');
+      }
+
+      const errEl = document.getElementById('verify-error');
+      const submitBtn = document.getElementById('verify-submit-btn');
+      errEl.classList.add('hidden');
+
+      if (!code || code.length !== 6) {
+        errEl.textContent = 'Please enter all 6 digits.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Verifying...</span>';
+
+      try {
+        const res = await authFetch('/api/auth/verify-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: pendingEmail, code })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          await fetchCsrfToken();
+          currentUser = data.user;
+          updateUserUI(currentUser);
+          hideAuthScreen();
+          showToast('Email verified successfully! Welcome to GoldSea AI.', 'info');
+          await loadConversations();
+          if (currentConversationId) {
+            await loadConversationMessages(currentConversationId);
+          } else {
+            showWelcome();
+          }
+        } else {
+          errEl.textContent = data.detail || 'Verification failed. Please check the code.';
+          errEl.classList.remove('hidden');
+        }
+      } catch (err) {
+        errEl.textContent = 'Connection error. Please try again.';
+        errEl.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Verify & Enter GoldSea AI</span>';
+      }
+    }
+
+    const verifySubmitBtn = document.getElementById('verify-submit-btn');
+    if (verifySubmitBtn) {
+      verifySubmitBtn.addEventListener('click', () => handleVerifySubmit());
+    }
+
+    // Resend Code
+    const resendBtn = document.getElementById('verify-resend-btn');
+    if (resendBtn) {
+      resendBtn.addEventListener('click', async () => {
+        if (resendBtn.disabled) return;
+        resendBtn.disabled = true;
+        try {
+          const res = await authFetch('/api/auth/resend-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: pendingEmail, purpose: 'verification' })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            showToast('New verification code sent! Check your email.', 'info');
+            startResendCountdown(60);
+          } else {
+            showToast(data.detail || 'Could not resend code.', 'error');
+            resendBtn.disabled = false;
+          }
+        } catch (e) {
+          showToast('Network error while resending code.', 'error');
+          resendBtn.disabled = false;
+        }
+      });
+    }
+
+    // Forgot Password Form Submit
+    const forgotForm = document.getElementById('forgot-form');
+    if (forgotForm) {
+      forgotForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('forgot-email').value.trim();
+        const errEl = document.getElementById('forgot-error');
+        const submitBtn = document.getElementById('forgot-submit-btn');
+
+        errEl.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Sending Code...</span>';
+
+        try {
+          const res = await authFetch('/api/auth/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            pendingEmail = email;
+            const disp = document.getElementById('reset-email-display');
+            if (disp) disp.textContent = pendingEmail;
+            showAuthScreen('reset');
+            showToast('Reset code sent! Check your email.', 'info');
+          } else {
+            errEl.textContent = data.detail || 'Failed to send reset code.';
+            errEl.classList.remove('hidden');
+          }
+        } catch (err) {
+          errEl.textContent = 'Connection error. Please try again.';
+          errEl.classList.remove('hidden');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Send Reset Code</span>';
+        }
+      });
+    }
+
+    // Reset Password Form Submit
+    const resetForm = document.getElementById('reset-form');
+    if (resetForm) {
+      resetForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const inputs = Array.from(document.querySelectorAll('#reset-digits-container .digit-box'));
+        const code = inputs.map(i => i.value.trim()).join('');
+        const newPassword = document.getElementById('reset-new-password').value;
+        const confirmPassword = document.getElementById('reset-confirm-password').value;
+        const errEl = document.getElementById('reset-error');
+        const submitBtn = document.getElementById('reset-submit-btn');
+
+        errEl.classList.add('hidden');
+        if (code.length !== 6) {
+          errEl.textContent = 'Please enter all 6 digits of your reset code.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          errEl.textContent = 'Passwords do not match.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Resetting Password...</span>';
+
+        try {
+          const res = await authFetch('/api/auth/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: pendingEmail,
+              code,
+              new_password: newPassword,
+              confirm_password: confirmPassword
+            })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            await fetchCsrfToken();
+            currentUser = data.user;
+            updateUserUI(currentUser);
+            hideAuthScreen();
+            showToast('Password reset successfully! Logged in.', 'info');
+            await loadConversations();
+            if (currentConversationId) {
+              await loadConversationMessages(currentConversationId);
+            } else {
+              showWelcome();
+            }
+          } else {
+            errEl.textContent = data.detail || 'Password reset failed.';
+            errEl.classList.remove('hidden');
+          }
+        } catch (err) {
+          errEl.textContent = 'Connection error. Please try again.';
+          errEl.classList.remove('hidden');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Reset Password & Sign In</span>';
+        }
+      });
+    }
+  }
+
+  // --- Account & Memories Settings Module ---
+  function setupAccountSettingsHandlers() {
+    const userProfileBtn = document.getElementById('user-profile-btn');
+    const userMenuDropdown = document.getElementById('user-menu-dropdown');
+    const openSettingsBtn = document.getElementById('open-account-settings-btn');
+    const settingsModal = document.getElementById('account-settings-modal');
+    const closeSettingsBtn = document.getElementById('close-account-settings-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const exportMenuBtn = document.getElementById('export-chat-menu-btn');
+
+    // Toggle dropdown menu
+    if (userProfileBtn && userMenuDropdown) {
+      userProfileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userMenuDropdown.classList.toggle('hidden');
+      });
+      document.addEventListener('click', (e) => {
+        if (!userMenuDropdown.contains(e.target) && !userProfileBtn.contains(e.target)) {
+          userMenuDropdown.classList.add('hidden');
+        }
+      });
+    }
+
+    // Export Chat from Menu
+    if (exportMenuBtn) {
+      exportMenuBtn.addEventListener('click', () => {
+        if (userMenuDropdown) userMenuDropdown.classList.add('hidden');
+        if (!currentConversationId) {
+          showToast('Please select or start a conversation first.', 'info');
+          return;
+        }
+        exportModal.classList.remove('hidden');
+      });
+    }
+
+    // Open / Close Settings Modal
+    if (openSettingsBtn && settingsModal) {
+      openSettingsBtn.addEventListener('click', () => {
+        if (userMenuDropdown) userMenuDropdown.classList.add('hidden');
+        settingsModal.classList.remove('hidden');
+        initLucide();
+      });
+    }
+    if (closeSettingsBtn && settingsModal) {
+      closeSettingsBtn.addEventListener('click', () => {
+        settingsModal.classList.add('hidden');
+      });
+    }
+    if (settingsModal) {
+      settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) settingsModal.classList.add('hidden');
+      });
+    }
+
+    // Settings Tabs
+    const tabProfileBtn = document.getElementById('settings-tab-profile-btn');
+    const tabMemoriesBtn = document.getElementById('settings-tab-memories-btn');
+    const panelProfile = document.getElementById('settings-panel-profile');
+    const panelMemories = document.getElementById('settings-panel-memories');
+
+    if (tabProfileBtn && tabMemoriesBtn) {
+      tabProfileBtn.addEventListener('click', () => {
+        tabProfileBtn.className = 'flex-1 py-3 px-4 text-xs font-semibold text-spider-400 border-b-2 border-spider-400 flex items-center justify-center gap-2 transition-all';
+        tabMemoriesBtn.className = 'flex-1 py-3 px-4 text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent flex items-center justify-center gap-2 transition-all';
+        panelProfile.classList.remove('hidden');
+        panelMemories.classList.add('hidden');
+      });
+
+      tabMemoriesBtn.addEventListener('click', () => {
+        tabMemoriesBtn.className = 'flex-1 py-3 px-4 text-xs font-semibold text-spider-400 border-b-2 border-spider-400 flex items-center justify-center gap-2 transition-all';
+        tabProfileBtn.className = 'flex-1 py-3 px-4 text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent flex items-center justify-center gap-2 transition-all';
+        panelMemories.classList.remove('hidden');
+        panelProfile.classList.add('hidden');
+        loadMemories();
+      });
+    }
+
+    // Change Password Form
+    const changePassForm = document.getElementById('change-password-form');
+    if (changePassForm) {
+      changePassForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const currentPassword = document.getElementById('change-curr-pass').value;
+        const newPassword = document.getElementById('change-new-pass').value;
+        const confirmPassword = document.getElementById('change-confirm-pass').value;
+        const msgEl = document.getElementById('change-password-msg');
+        const submitBtn = document.getElementById('change-password-submit-btn');
+
+        msgEl.className = 'hidden text-xs p-2.5 rounded-lg';
+        if (newPassword !== confirmPassword) {
+          msgEl.textContent = 'New passwords do not match.';
+          msgEl.className = 'text-xs p-2.5 rounded-lg bg-red-950/40 border border-red-500/30 text-red-300';
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Updating...';
+
+        try {
+          const res = await authFetch('/api/account/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              current_password: currentPassword,
+              new_password: newPassword,
+              confirm_password: confirmPassword
+            })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            msgEl.textContent = 'Password updated successfully!';
+            msgEl.className = 'text-xs p-2.5 rounded-lg bg-spider-950/40 border border-spider-500/30 text-spider-300';
+            changePassForm.reset();
+          } else {
+            msgEl.textContent = data.detail || 'Could not update password.';
+            msgEl.className = 'text-xs p-2.5 rounded-lg bg-red-950/40 border border-red-500/30 text-red-300';
+          }
+        } catch (err) {
+          msgEl.textContent = 'Connection error.';
+          msgEl.className = 'text-xs p-2.5 rounded-lg bg-red-950/40 border border-red-500/30 text-red-300';
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Update Password';
+        }
+      });
+    }
+
+    // Log Out All Devices
+    const logoutAllBtn = document.getElementById('logout-all-btn');
+    if (logoutAllBtn) {
+      logoutAllBtn.addEventListener('click', async () => {
+        if (!confirm('Log out of all devices and active sessions?')) return;
+        try {
+          await authFetch('/api/auth/logout-all', { method: 'POST' });
+          currentUser = null;
+          if (settingsModal) settingsModal.classList.add('hidden');
+          showAuthScreen('login');
+          showToast('Logged out of all devices.', 'info');
+        } catch (e) {
+          showToast('Failed to log out of all devices.', 'error');
+        }
+      });
+    }
+
+    // Danger Zone Delete Account
+    const showDeleteBtn = document.getElementById('show-delete-account-btn');
+    const deleteToggleWrap = document.getElementById('delete-account-toggle-wrap');
+    const deleteForm = document.getElementById('delete-account-form');
+    const cancelDeleteBtn = document.getElementById('cancel-delete-account-btn');
+
+    if (showDeleteBtn && deleteForm) {
+      showDeleteBtn.addEventListener('click', () => {
+        deleteToggleWrap.classList.add('hidden');
+        deleteForm.classList.remove('hidden');
+      });
+      cancelDeleteBtn.addEventListener('click', () => {
+        deleteForm.classList.add('hidden');
+        deleteToggleWrap.classList.remove('hidden');
+      });
+      deleteForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pwd = document.getElementById('delete-account-password').value;
+        const errEl = document.getElementById('delete-account-error');
+        errEl.classList.add('hidden');
+
+        try {
+          const res = await authFetch('/api/account/delete-account', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pwd })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            currentUser = null;
+            conversations = [];
+            currentConversationId = null;
+            renderConversationsList();
+            if (settingsModal) settingsModal.classList.add('hidden');
+            showAuthScreen('signup');
+            showToast('Account and all associated data permanently deleted.', 'info');
+          } else {
+            errEl.textContent = data.detail || 'Failed to delete account. Incorrect password.';
+            errEl.classList.remove('hidden');
+          }
+        } catch (err) {
+          errEl.textContent = 'Connection error. Please try again.';
+          errEl.classList.remove('hidden');
+        }
+      });
+    }
+
+    // Memories CRUD
+    const addMemoryForm = document.getElementById('add-memory-form');
+    if (addMemoryForm) {
+      addMemoryForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const key = document.getElementById('new-memory-key').value.trim();
+        const value = document.getElementById('new-memory-val').value.trim();
+        const errEl = document.getElementById('add-memory-error');
+        errEl.classList.add('hidden');
+
+        try {
+          const res = await authFetch('/api/memories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key, value, category: 'preference' })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            addMemoryForm.reset();
+            showToast('Memory saved', 'info');
+            loadMemories();
+          } else {
+            errEl.textContent = data.detail || 'Could not save memory.';
+            errEl.classList.remove('hidden');
+          }
+        } catch (err) {
+          errEl.textContent = 'Error saving memory.';
+          errEl.classList.remove('hidden');
+        }
+      });
+    }
+
+    const clearAllMemoriesBtn = document.getElementById('clear-all-memories-btn');
+    if (clearAllMemoriesBtn) {
+      clearAllMemoriesBtn.addEventListener('click', async () => {
+        if (!confirm('Clear all long-term memories? The assistant will forget these facts.')) return;
+        try {
+          const res = await authFetch('/api/memories', { method: 'DELETE' });
+          if (res.ok) {
+            showToast('All memories cleared', 'info');
+            loadMemories();
+          }
+        } catch (e) {
+          showToast('Failed to clear memories', 'error');
+        }
+      });
+    }
+
+    // Main Log Out
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        try {
+          await authFetch('/api/auth/logout', { method: 'POST' });
+        } catch (_) {}
+        currentUser = null;
+        conversations = [];
+        currentConversationId = null;
+        localStorage.removeItem('goldsea_active_conv');
+        renderConversationsList();
+        showAuthScreen('login');
+        showToast('Signed out.', 'info');
+      });
+    }
+  }
+
+  async function loadMemories() {
+    const listEl = document.getElementById('memories-list');
+    const countEl = document.getElementById('memories-count');
+    if (!listEl) return;
+    try {
+      const res = await authFetch('/api/memories');
+      if (res.ok) {
+        const memories = await res.json();
+        if (countEl) countEl.textContent = memories.length;
+        if (memories.length === 0) {
+          listEl.innerHTML = '<div class="text-xs text-slate-500 p-3 text-center">No persistent memories saved yet. Talk with the assistant or add facts above.</div>';
+          return;
+        }
+        listEl.innerHTML = '';
+        memories.forEach(m => {
+          const row = document.createElement('div');
+          row.className = 'flex items-center justify-between p-2.5 rounded-lg bg-dark-900 border border-spider-500/10 text-xs';
+          row.innerHTML = `
+            <div class="min-w-0 flex-1 mr-2">
+              <div class="font-mono text-[11px] text-spider-400">${escapeHtml(m.key)}</div>
+              <div class="text-slate-200 truncate">${escapeHtml(m.value)}</div>
+            </div>
+            <button class="delete-memory-btn p-1 text-slate-400 hover:text-rose-400 rounded transition-colors" data-id="${m.id || m.key}" title="Delete memory">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          `;
+          row.querySelector('.delete-memory-btn').addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await deleteMemory(m.id || m.key);
+          });
+          listEl.appendChild(row);
+        });
+        initLucide();
+      }
+    } catch (e) {
+      console.error('Failed to load memories', e);
+    }
+  }
+
+  async function deleteMemory(keyOrId) {
+    try {
+      const res = await authFetch(`/api/memories/${encodeURIComponent(keyOrId)}`, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('Memory removed', 'info');
+        loadMemories();
+      }
+    } catch (e) {
+      showToast('Failed to delete memory', 'error');
+    }
   }
 
   function initVisualViewport() {

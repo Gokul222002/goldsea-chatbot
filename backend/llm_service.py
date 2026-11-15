@@ -10,8 +10,7 @@ from backend.config import (
     GEMINI_API_KEY, GEMINI_MODEL,
     GROQ_API_KEY, GROQ_MODEL,
     OPENAI_API_KEY, OPENAI_MODEL,
-    OPENROUTER_API_KEY, OPENROUTER_MODEL,
-    TARGET_USER_NAME
+    OPENROUTER_API_KEY, OPENROUTER_MODEL
 )
 from backend.prompt_engine import build_system_prompt
 from backend.search_tool import should_trigger_search, perform_web_search
@@ -424,6 +423,8 @@ async def transcribe_audio(audio_bytes: bytes, mime_type: str = "audio/webm") ->
 async def generate_chat_response(
     query: str,
     conversation_id: Optional[str] = None,
+    user_id: Optional[str] = None,
+    user_name: Optional[str] = None,
     custom_instruction: Optional[str] = None,
     enable_search: bool = True,
     attachments: Optional[List[Dict[str, Any]]] = None
@@ -439,11 +440,11 @@ async def generate_chat_response(
     """
     # 1. Update memories from query text
     try:
-        if query and query.strip():
-            extract_and_save_memories(query)
+        if query and query.strip() and user_id:
+            extract_and_save_memories(query, user_id=user_id)
     except Exception:
         pass
-    all_memories = get_all_memories()
+    all_memories = get_all_memories(user_id=user_id) if user_id else []
 
     # 2. Process attachments into document text & images
     doc_blocks = []
@@ -489,10 +490,10 @@ async def generate_chat_response(
     # 5. Retrieve full conversation history
     history_messages = []
     if conversation_id:
-        history_messages = get_conversation_messages(conversation_id)
+        history_messages = get_conversation_messages(conversation_id, user_id=user_id)
 
     # 6. Build system prompt
-    system_prompt = build_system_prompt(memories=all_memories, custom_instructions=custom_instruction)
+    system_prompt = build_system_prompt(memories=all_memories, custom_instructions=custom_instruction, user_name=user_name)
     if search_context:
         system_prompt += f"\n\n[Live Search Grounding Information (Verified Sources)]:\n{search_context}"
 
@@ -522,6 +523,8 @@ async def generate_chat_response(
 async def stream_chat_response(
     query: str,
     conversation_id: str,
+    user_id: Optional[str] = None,
+    user_name: Optional[str] = None,
     custom_instruction: Optional[str] = None,
     enable_search: bool = True,
     attachments: Optional[List[Dict[str, Any]]] = None
@@ -531,6 +534,8 @@ async def stream_chat_response(
         result = await generate_chat_response(
             query=query,
             conversation_id=conversation_id,
+            user_id=user_id,
+            user_name=user_name,
             custom_instruction=custom_instruction,
             enable_search=enable_search,
             attachments=attachments
@@ -558,15 +563,17 @@ async def stream_chat_response(
 
         # Save assistant message in DB
         assistant_msg_id = f"msg_{os.urandom(6).hex()}"
-        save_message(
-            msg_id=assistant_msg_id,
-            conv_id=conversation_id,
-            role="assistant",
-            content=full_text,
-            sources=result.get("sources", []),
-            follow_up_chips=result.get("follow_up_chips", []),
-            attachments=[]
-        )
+        if user_id:
+            save_message(
+                msg_id=assistant_msg_id,
+                conv_id=conversation_id,
+                user_id=user_id,
+                role="assistant",
+                content=full_text,
+                sources=result.get("sources", []),
+                follow_up_chips=result.get("follow_up_chips", []),
+                attachments=[]
+            )
 
         yield f"data: {json.dumps({'type': 'done', 'message_id': assistant_msg_id})}\n\n"
 
