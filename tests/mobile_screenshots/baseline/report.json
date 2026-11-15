@@ -1,0 +1,302 @@
+[
+  {
+    "viewport": "mobile_360",
+    "width": 360,
+    "height": 800,
+    "metrics": {
+      "scrollWidth": 360,
+      "innerWidth": 360,
+      "innerHeight": 800,
+      "sidebarRect": {
+        "left": -288,
+        "right": 0,
+        "width": 288,
+        "position": "relative"
+      },
+      "mainRect": {
+        "left": 288,
+        "right": 360,
+        "width": 72
+      },
+      "buttons": [
+        {
+          "id": "attach-file-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": true
+        },
+        {
+          "id": "voice-input-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": false
+        },
+        {
+          "id": "send-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": false
+        }
+      ],
+      "input": {
+        "width": 8,
+        "height": 39,
+        "left": 397,
+        "right": 405,
+        "bottom": 724,
+        "inViewport": false,
+        "fontSize": "14px"
+      },
+      "avg_chars_user": 5.9,
+      "avg_chars_asst": 5.4,
+      "drawer_checks": {}
+    },
+    "failures": []
+  },
+  {
+    "viewport": "mobile_390",
+    "width": 390,
+    "height": 844,
+    "metrics": {
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "innerHeight": 844,
+      "sidebarRect": {
+        "left": -288,
+        "right": 0,
+        "width": 288,
+        "position": "relative"
+      },
+      "mainRect": {
+        "left": 288,
+        "right": 390,
+        "width": 102
+      },
+      "buttons": [
+        {
+          "id": "attach-file-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": true
+        },
+        {
+          "id": "voice-input-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": true
+        },
+        {
+          "id": "send-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": false
+        }
+      ],
+      "input": {
+        "width": 8,
+        "height": 39,
+        "left": 397,
+        "right": 405,
+        "bottom": 768,
+        "inViewport": false,
+        "fontSize": "14px"
+      },
+      "avg_chars_user": 5.9,
+      "avg_chars_asst": 5.4,
+      "drawer_checks": {}
+    },
+    "failures": []
+  },
+  {
+    "viewport": "mobile_430",
+    "width": 430,
+    "height": 932,
+    "metrics": {
+      "scrollWidth": 430,
+      "innerWidth": 430,
+      "innerHeight": 932,
+      "sidebarRect": {
+        "left": -288,
+        "right": 0,
+        "width": 288,
+        "position": "relative"
+      },
+      "mainRect": {
+        "left": 288,
+        "right": 430,
+        "width": 142
+      },
+      "buttons": [
+        {
+          "id": "attach-file-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": true
+        },
+        {
+          "id": "voice-input-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": true
+        },
+        {
+          "id": "send-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": false
+        }
+      ],
+      "input": {
+        "width": 8,
+        "height": 39,
+        "left": 397,
+        "right": 405,
+        "bottom": 856,
+        "inViewport": false,
+        "fontSize": "14px"
+      },
+      "avg_chars_user": 8.4,
+      "avg_chars_asst": 6.9,
+      "drawer_checks": {}
+    },
+    "failures": []
+  },
+  {
+    "viewport": "tablet_768",
+    "width": 768,
+    "height": 1024,
+    "metrics": {
+      "scrollWidth": 768,
+      "innerWidth": 768,
+      "innerHeight": 1024,
+      "sidebarRect": {
+        "left": 0,
+        "right": 288,
+        "width": 288,
+        "position": "static"
+      },
+      "mainRect": {
+        "left": 288,
+        "right": 768,
+        "width": 480
+      },
+      "buttons": [
+        {
+          "id": "attach-file-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": true
+        },
+        {
+          "id": "voice-input-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": true
+        },
+        {
+          "id": "send-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": true
+        }
+      ],
+      "input": {
+        "width": 298,
+        "height": 39,
+        "left": 401,
+        "right": 699,
+        "bottom": 976,
+        "inViewport": true,
+        "fontSize": "14px"
+      },
+      "avg_chars_user": 58,
+      "avg_chars_asst": 55,
+      "drawer_checks": {}
+    },
+    "failures": []
+  },
+  {
+    "viewport": "desktop_1280",
+    "width": 1280,
+    "height": 800,
+    "metrics": {
+      "scrollWidth": 1280,
+      "innerWidth": 1280,
+      "innerHeight": 800,
+      "sidebarRect": {
+        "left": 0,
+        "right": 288,
+        "width": 288,
+        "position": "static"
+      },
+      "mainRect": {
+        "left": 288,
+        "right": 1280,
+        "width": 992
+      },
+      "buttons": [
+        {
+          "id": "attach-file-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": true
+        },
+        {
+          "id": "voice-input-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": true
+        },
+        {
+          "id": "send-btn",
+          "exists": true,
+          "visible": true,
+          "width": 36,
+          "height": 36,
+          "inViewport": true
+        }
+      ],
+      "input": {
+        "width": 618,
+        "height": 39,
+        "left": 497,
+        "right": 1115,
+        "bottom": 752,
+        "inViewport": true,
+        "fontSize": "14px"
+      },
+      "avg_chars_user": 78,
+      "avg_chars_asst": 88,
+      "drawer_checks": {}
+    },
+    "failures": []
+  }
+]

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'goldsea-v2';
+const CACHE_NAME = 'goldsea-auth-v3';
 const PRECACHE_ASSETS = [
   '/',
   '/static/css/app.css',

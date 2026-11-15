@@ -1,11 +1,20 @@
 import os
 import uuid
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, Request
 from fastapi.responses import StreamingResponse, JSONResponse
+
 from backend.models import ChatRequest, QuickActionRequest, PerReplyActionRequest
 from backend.llm_service import generate_chat_response, stream_chat_response, transcribe_audio
-from backend.database import create_conversation, get_conversation, save_message, get_conversation_messages
+from backend.database import (
+    User,
+    create_conversation,
+    get_conversation,
+    save_message,
+    get_conversation_messages,
+    save_user_file_record
+)
+from backend.dependencies import get_current_user
 from backend.document_parser import process_uploaded_file
 
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
@@ -20,11 +29,26 @@ QUICK_ACTION_PROMPTS = {
 }
 
 @router.post("/upload")
-async def upload_file_endpoint(file: UploadFile = File(...)):
-    """Uploads and server-side extracts binary PDF, DOCX, XLSX, CSV, TXT, or images."""
+async def upload_file_endpoint(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Uploads and server-side extracts binary PDF, DOCX, XLSX, CSV, TXT, or images for authenticated user."""
     try:
         content = await file.read()
         res = process_uploaded_file(content, file.filename or "uploaded_file", file.content_type)
+        file_id = f"file_{uuid.uuid4().hex[:12]}"
+        extracted_text = res.get("extracted_text", "")
+        save_user_file_record(
+            user_id=current_user.id,
+            file_id=file_id,
+            filename=res.get("name", file.filename or "file"),
+            file_type=res.get("type", "document"),
+            mime_type=file.content_type or "application/octet-stream",
+            size_bytes=len(content),
+            extracted_text=extracted_text[:10000]
+        )
+        res["file_id"] = file_id
         return res
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
@@ -32,8 +56,11 @@ async def upload_file_endpoint(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"File processing error: {str(e)}")
 
 @router.post("/transcribe")
-async def transcribe_audio_endpoint(file: UploadFile = File(...)):
-    """Transcribes audio recordings using multimodal speech-to-text fallback."""
+async def transcribe_audio_endpoint(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Transcribes audio recordings using multimodal speech-to-text fallback for authenticated user."""
     try:
         audio_bytes = await file.read()
         text, err = await transcribe_audio(audio_bytes, file.content_type or "audio/webm")
@@ -46,7 +73,10 @@ async def transcribe_audio_endpoint(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Audio error: {str(e)}")
 
 @router.post("")
-async def chat_endpoint(request: ChatRequest):
+async def chat_endpoint(
+    request: ChatRequest,
+    current_user: User = Depends(get_current_user)
+):
     conv_id = request.conversation_id
     attachments = request.attachments or []
     
@@ -58,20 +88,23 @@ async def chat_endpoint(request: ChatRequest):
 
     if not conv_id:
         conv_id = f"conv_{uuid.uuid4().hex[:12]}"
-        create_conversation(conv_id, title=title_text[:40] + ("..." if len(title_text) > 40 else ""))
+        create_conversation(conv_id, user_id=current_user.id, title=title_text[:40] + ("..." if len(title_text) > 40 else ""))
     else:
-        conv = get_conversation(conv_id)
+        conv = get_conversation(conv_id, user_id=current_user.id)
         if not conv:
-            create_conversation(conv_id, title=title_text[:40] + ("..." if len(title_text) > 40 else ""))
+            conv_id = f"conv_{uuid.uuid4().hex[:12]}"
+            create_conversation(conv_id, user_id=current_user.id, title=title_text[:40] + ("..." if len(title_text) > 40 else ""))
 
     # Save user message with attachments
     user_msg_id = f"msg_{uuid.uuid4().hex[:10]}"
-    save_message(user_msg_id, conv_id, role="user", content=request.message, attachments=attachments)
+    save_message(user_msg_id, conv_id, user_id=current_user.id, role="user", content=request.message, attachments=attachments)
 
     # Process response
     result = await generate_chat_response(
         query=request.message,
         conversation_id=conv_id,
+        user_id=current_user.id,
+        user_name=current_user.name,
         enable_search=request.enable_search,
         attachments=attachments
     )
@@ -81,6 +114,7 @@ async def chat_endpoint(request: ChatRequest):
     save_message(
         asst_msg_id,
         conv_id,
+        user_id=current_user.id,
         role="assistant",
         content=result["text"],
         sources=result["sources"],
@@ -98,7 +132,10 @@ async def chat_endpoint(request: ChatRequest):
     }
 
 @router.post("/stream")
-async def chat_stream_endpoint(request: ChatRequest):
+async def chat_stream_endpoint(
+    request: ChatRequest,
+    current_user: User = Depends(get_current_user)
+):
     conv_id = request.conversation_id
     attachments = request.attachments or []
     
@@ -110,20 +147,23 @@ async def chat_stream_endpoint(request: ChatRequest):
 
     if not conv_id:
         conv_id = f"conv_{uuid.uuid4().hex[:12]}"
-        create_conversation(conv_id, title=title_text[:40] + ("..." if len(title_text) > 40 else ""))
+        create_conversation(conv_id, user_id=current_user.id, title=title_text[:40] + ("..." if len(title_text) > 40 else ""))
     else:
-        conv = get_conversation(conv_id)
+        conv = get_conversation(conv_id, user_id=current_user.id)
         if not conv:
-            create_conversation(conv_id, title=title_text[:40] + ("..." if len(title_text) > 40 else ""))
+            conv_id = f"conv_{uuid.uuid4().hex[:12]}"
+            create_conversation(conv_id, user_id=current_user.id, title=title_text[:40] + ("..." if len(title_text) > 40 else ""))
 
     # Save user message with attachments
     user_msg_id = f"msg_{uuid.uuid4().hex[:10]}"
-    save_message(user_msg_id, conv_id, role="user", content=request.message, attachments=attachments)
+    save_message(user_msg_id, conv_id, user_id=current_user.id, role="user", content=request.message, attachments=attachments)
 
     return StreamingResponse(
         stream_chat_response(
             query=request.message,
             conversation_id=conv_id,
+            user_id=current_user.id,
+            user_name=current_user.name,
             enable_search=request.enable_search,
             attachments=attachments
         ),
@@ -136,12 +176,15 @@ async def chat_stream_endpoint(request: ChatRequest):
     )
 
 @router.post("/quick-action")
-async def quick_action_endpoint(request: QuickActionRequest):
+async def quick_action_endpoint(
+    request: QuickActionRequest,
+    current_user: User = Depends(get_current_user)
+):
     prefix = QUICK_ACTION_PROMPTS.get(request.action.lower(), "")
     full_prompt = f"{prefix}{request.text.strip()}"
     
     conv_id = request.conversation_id or f"conv_{uuid.uuid4().hex[:12]}"
-    if not get_conversation(conv_id):
+    if not get_conversation(conv_id, user_id=current_user.id):
         action_names = {
             "summarize": "Text Summary",
             "grammar": "Grammar Polish",
@@ -151,17 +194,23 @@ async def quick_action_endpoint(request: QuickActionRequest):
             "plan": "Daily Schedule"
         }
         title = action_names.get(request.action.lower(), "Quick Action")
-        create_conversation(conv_id, title=title)
+        create_conversation(conv_id, user_id=current_user.id, title=title)
         
     user_msg_id = f"msg_{uuid.uuid4().hex[:10]}"
-    save_message(user_msg_id, conv_id, role="user", content=full_prompt)
+    save_message(user_msg_id, conv_id, user_id=current_user.id, role="user", content=full_prompt)
     
-    result = await generate_chat_response(query=full_prompt, conversation_id=conv_id)
+    result = await generate_chat_response(
+        query=full_prompt,
+        conversation_id=conv_id,
+        user_id=current_user.id,
+        user_name=current_user.name
+    )
     
     asst_msg_id = f"msg_{uuid.uuid4().hex[:10]}"
     save_message(
         asst_msg_id,
         conv_id,
+        user_id=current_user.id,
         role="assistant",
         content=result["text"],
         sources=result["sources"],
@@ -177,9 +226,12 @@ async def quick_action_endpoint(request: QuickActionRequest):
     }
 
 @router.post("/per-reply-action")
-async def per_reply_action_endpoint(request: PerReplyActionRequest):
+async def per_reply_action_endpoint(
+    request: PerReplyActionRequest,
+    current_user: User = Depends(get_current_user)
+):
     conv_id = request.conversation_id
-    messages = get_conversation_messages(conv_id)
+    messages = get_conversation_messages(conv_id, user_id=current_user.id)
     if not messages:
         raise HTTPException(status_code=404, detail="Conversation not found or empty")
         
@@ -215,6 +267,8 @@ async def per_reply_action_endpoint(request: PerReplyActionRequest):
     result = await generate_chat_response(
         query=query,
         conversation_id=conv_id,
+        user_id=current_user.id,
+        user_name=current_user.name,
         custom_instruction=custom_instruction
     )
     
@@ -222,6 +276,7 @@ async def per_reply_action_endpoint(request: PerReplyActionRequest):
     save_message(
         asst_msg_id,
         conv_id,
+        user_id=current_user.id,
         role="assistant",
         content=result["text"],
         sources=result["sources"],

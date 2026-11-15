@@ -72,7 +72,7 @@
           <h1 class="font-bold text-sm text-white tracking-wide flex items-center gap-1.5">
             GoldSea <span class="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-spider-500/20 text-spider-400 border border-spider-500/30">AI</span>
           </h1>
-          <p class="text-[11px] text-slate-400">Personal Agent for Gokul</p>
+          <p class="text-[11px] text-slate-400">Personal AI Assistant</p>
         </div>
       </div>
       <!-- Close drawer on mobile -->
@@ -105,24 +105,40 @@
 
     <!-- User Profile & Action Footer -->
     <div class="p-3 border-t border-spider-500/10 space-y-2 bg-dark-950/70">
-      <!-- User Profile Badge -->
-      <div class="flex items-center justify-between p-2 rounded-lg bg-dark-850/80 border border-spider-500/10">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-full bg-dark-800 border border-spider-500/40 flex items-center justify-center text-xs font-bold text-spider-400">
-            G
-          </div>
-          <div>
-            <div class="text-xs font-medium text-slate-200">Gokul</div>
-            <div class="text-[10px] text-spider-400 flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-spider-400 animate-pulse"></span>
-              Memory Active
+      <!-- User Profile Badge & Dropdown Trigger -->
+      <div class="relative">
+        <button id="user-profile-btn" type="button" aria-haspopup="true" aria-expanded="false" class="w-full flex items-center justify-between p-2 rounded-xl bg-dark-850/80 hover:bg-dark-800 border border-spider-500/10 hover:border-spider-500/30 transition-all text-left">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div id="user-avatar-initial" class="w-7 h-7 rounded-full bg-spider-500/20 border border-spider-400/50 flex items-center justify-center text-xs font-bold text-spider-300 shrink-0">
+              ?
+            </div>
+            <div class="min-w-0 flex-1">
+              <div id="user-display-name" class="text-xs font-semibold text-slate-200 truncate">Account</div>
+              <div class="text-[10px] text-spider-400 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-spider-400 animate-pulse"></span>
+                <span id="user-display-status">Memory Active</span>
+              </div>
             </div>
           </div>
-        </div>
-        <!-- Export Button -->
-        <button id="export-chat-btn" title="Export Current Chat" class="p-1.5 text-slate-400 hover:text-spider-400 rounded-md hover:bg-white/5 transition-colors">
-          <i data-lucide="download" class="w-4 h-4"></i>
+          <i data-lucide="more-vertical" class="w-4 h-4 text-slate-400 shrink-0"></i>
         </button>
+
+        <!-- User Dropdown Menu -->
+        <div id="user-menu-dropdown" class="hidden absolute bottom-full left-0 right-0 mb-2 p-1.5 rounded-xl bg-[#0a140e] border border-spider-500/20 shadow-2xl space-y-1 z-50">
+          <button id="open-account-settings-btn" type="button" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-slate-200 hover:bg-dark-800 hover:text-white transition-colors">
+            <i data-lucide="settings" class="w-4 h-4 text-spider-400"></i>
+            <span>Account & Memories</span>
+          </button>
+          <button id="export-chat-menu-btn" type="button" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-slate-200 hover:bg-dark-800 hover:text-white transition-colors">
+            <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
+            <span>Export Chat</span>
+          </button>
+          <div class="border-t border-white/5 my-1"></div>
+          <button id="logout-btn" type="button" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span>Log Out</span>
+          </button>
+        </div>
       </div>
 
       <!-- Action Utilities -->
@@ -199,7 +215,7 @@
             <span class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-spider-500 border-2 border-dark-950 flex items-center justify-center text-xs text-dark-950 font-bold shadow-md">🌿</span>
           </div>
           <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight">
-            Hello Gokul, what would you like to solve?
+            Hello <span id="welcome-user-name">there</span>, what would you like to solve?
           </h2>
           <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
             Your personal assistant is direct, remembers your preferences, verifies facts with web search, and never hallucinates.
@@ -442,6 +458,423 @@
         <i data-lucide="x" class="w-6 h-6"></i>
       </button>
       <img id="enlarged-image" src="" alt="Enlarged Preview" class="max-w-full max-h-[85vh] rounded-xl object-contain shadow-2xl border border-white/10">
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Account & Memories Settings Modal
+       ========================================================================= -->
+  <div id="account-settings-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-[#0a140e] border border-spider-500/20 rounded-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-spider-500/10 flex items-center justify-between shrink-0 bg-dark-900/60">
+        <h3 class="font-bold text-sm text-white flex items-center gap-2">
+          <i data-lucide="settings" class="w-4 h-4 text-spider-400"></i>
+          <span>Account & Memory Settings</span>
+        </h3>
+        <button id="close-account-settings-btn" type="button" aria-label="Close Settings" class="min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="flex border-b border-spider-500/10 bg-dark-950 shrink-0">
+        <button id="settings-tab-profile-btn" class="flex-1 py-3 px-4 text-xs font-semibold text-spider-400 border-b-2 border-spider-400 flex items-center justify-center gap-2 transition-all">
+          <i data-lucide="user" class="w-3.5 h-3.5"></i>
+          <span>Profile & Security</span>
+        </button>
+        <button id="settings-tab-memories-btn" class="flex-1 py-3 px-4 text-xs font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent flex items-center justify-center gap-2 transition-all">
+          <i data-lucide="brain" class="w-3.5 h-3.5"></i>
+          <span>Long-Term Memories</span>
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+        
+        <!-- Tab 1: Profile & Security -->
+        <div id="settings-panel-profile" class="space-y-6">
+          <!-- Profile Info Card -->
+          <div class="p-4 rounded-xl bg-dark-850 border border-spider-500/10 space-y-3">
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Your Account</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <span class="text-slate-400 block text-[11px] mb-1">Full Name</span>
+                <span id="settings-user-name" class="font-medium text-slate-200 bg-dark-900 px-3 py-2 rounded-lg block border border-white/5 truncate">User</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[11px] mb-1">Email Address</span>
+                <span id="settings-user-email" class="font-medium text-slate-200 bg-dark-900 px-3 py-2 rounded-lg block border border-white/5 truncate">email@example.com</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Change Password Card -->
+          <div class="p-4 rounded-xl bg-dark-850 border border-spider-500/10 space-y-3">
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Change Password</h4>
+            <form id="change-password-form" class="space-y-3">
+              <div>
+                <label class="text-slate-400 block text-[11px] mb-1" for="change-curr-pass">Current Password</label>
+                <div class="relative">
+                  <input id="change-curr-pass" type="password" required autocomplete="current-password" placeholder="••••••••" class="auth-input w-full bg-dark-900 border border-spider-500/10 focus:border-spider-400 text-xs text-slate-200 px-3 py-2.5 rounded-lg focus:outline-none">
+                  <button type="button" class="toggle-password-btn absolute right-3 top-2.5 text-slate-400 hover:text-slate-200" data-target="change-curr-pass">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label class="text-slate-400 block text-[11px] mb-1" for="change-new-pass">New Password (min 8 chars)</label>
+                <div class="relative">
+                  <input id="change-new-pass" type="password" required minlength="8" autocomplete="new-password" placeholder="••••••••" class="auth-input w-full bg-dark-900 border border-spider-500/10 focus:border-spider-400 text-xs text-slate-200 px-3 py-2.5 rounded-lg focus:outline-none">
+                  <button type="button" class="toggle-password-btn absolute right-3 top-2.5 text-slate-400 hover:text-slate-200" data-target="change-new-pass">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label class="text-slate-400 block text-[11px] mb-1" for="change-confirm-pass">Confirm New Password</label>
+                <div class="relative">
+                  <input id="change-confirm-pass" type="password" required minlength="8" autocomplete="new-password" placeholder="••••••••" class="auth-input w-full bg-dark-900 border border-spider-500/10 focus:border-spider-400 text-xs text-slate-200 px-3 py-2.5 rounded-lg focus:outline-none">
+                  <button type="button" class="toggle-password-btn absolute right-3 top-2.5 text-slate-400 hover:text-slate-200" data-target="change-confirm-pass">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div id="change-password-msg" class="hidden text-xs p-2.5 rounded-lg"></div>
+
+              <button id="change-password-submit-btn" type="submit" class="btn-tap-target px-4 py-2 bg-spider-500 hover:bg-spider-400 text-dark-950 font-bold text-xs rounded-lg transition-all shadow-md shadow-spider-500/20">
+                Update Password
+              </button>
+            </form>
+          </div>
+
+          <!-- Sessions Card -->
+          <div class="p-4 rounded-xl bg-dark-850 border border-spider-500/10 flex items-center justify-between gap-3">
+            <div>
+              <div class="text-xs font-medium text-slate-200">Active Sessions</div>
+              <div class="text-[11px] text-slate-400">Log out of every device or browser.</div>
+            </div>
+            <button id="logout-all-btn" type="button" class="btn-tap-target px-3 py-2 bg-dark-900 hover:bg-dark-750 border border-white/10 text-slate-300 hover:text-white text-xs font-semibold rounded-lg transition-all">
+              Log Out All Devices
+            </button>
+          </div>
+
+          <!-- Danger Zone Card -->
+          <div class="p-4 rounded-xl bg-red-950/20 border border-red-500/20 space-y-3">
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-red-400 flex items-center gap-1.5">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+              <span>Danger Zone</span>
+            </h4>
+            <p class="text-[11px] text-slate-400">
+              Permanently delete your GoldSea account and all associated chat history, messages, files, and memories. This action cannot be undone.
+            </p>
+            
+            <div id="delete-account-toggle-wrap">
+              <button id="show-delete-account-btn" type="button" class="btn-tap-target px-3.5 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 font-semibold text-xs rounded-lg transition-all">
+                Delete Account...
+              </button>
+            </div>
+
+            <!-- Delete Confirmation Form (Hidden by default) -->
+            <form id="delete-account-form" class="hidden space-y-3 pt-2 border-t border-red-500/20">
+              <div>
+                <label class="text-red-300 block text-[11px] mb-1" for="delete-account-password">Confirm your password to permanently delete:</label>
+                <input id="delete-account-password" type="password" required placeholder="Your account password" class="auth-input w-full bg-dark-900 border border-red-500/30 focus:border-red-400 text-xs text-slate-200 px-3 py-2.5 rounded-lg focus:outline-none">
+              </div>
+              <div id="delete-account-error" class="hidden text-xs text-red-400 p-2 rounded bg-red-950/40 border border-red-500/30"></div>
+              <div class="flex items-center gap-2">
+                <button id="confirm-delete-account-btn" type="submit" class="btn-tap-target px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-lg transition-all shadow-md">
+                  Yes, Delete My Account
+                </button>
+                <button id="cancel-delete-account-btn" type="button" class="btn-tap-target px-3 py-2 bg-dark-850 hover:bg-dark-800 text-slate-300 text-xs rounded-lg">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Tab 2: Long-Term Memories -->
+        <div id="settings-panel-memories" class="hidden space-y-5">
+          <div class="p-3.5 rounded-xl bg-dark-850 border border-spider-500/10 text-xs text-slate-300 flex items-start gap-2.5">
+            <i data-lucide="sparkles" class="w-4 h-4 text-spider-400 shrink-0 mt-0.5"></i>
+            <div>
+              <p class="font-medium text-slate-200 mb-0.5">Persistent Private Knowledge</p>
+              <p class="text-[11px] text-slate-400">
+                GoldSea AI extracts your preferences, favorite tools, and background across conversations and stores them safely in your private cloud account. Sensitive information (passwords, cards, SSNs) is strictly blocked.
+              </p>
+            </div>
+          </div>
+
+          <!-- Add Memory Form -->
+          <form id="add-memory-form" class="p-3.5 rounded-xl bg-dark-850 border border-spider-500/10 space-y-2.5">
+            <h4 class="text-xs font-semibold text-slate-200">Add or Update Fact</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <input id="new-memory-key" type="text" placeholder="Key (e.g. favorite_framework)" required class="auth-input bg-dark-900 border border-spider-500/10 text-xs text-slate-200 px-3 py-2 rounded-lg focus:outline-none focus:border-spider-400">
+              <input id="new-memory-val" type="text" placeholder="Value (e.g. FastAPI & Tailwind)" required class="auth-input bg-dark-900 border border-spider-500/10 text-xs text-slate-200 px-3 py-2 rounded-lg focus:outline-none focus:border-spider-400">
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <span id="add-memory-error" class="text-[11px] text-red-400 hidden"></span>
+              <button type="submit" class="btn-tap-target ml-auto px-3.5 py-1.5 bg-spider-500 hover:bg-spider-400 text-dark-950 font-bold text-xs rounded-lg transition-all">
+                Save Memory
+              </button>
+            </div>
+          </form>
+
+          <!-- Memories List -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Saved Facts (<span id="memories-count">0</span>)</h4>
+              <button id="clear-all-memories-btn" type="button" class="text-[11px] text-red-400 hover:text-red-300 font-medium hover:underline">
+                Clear All
+              </button>
+            </div>
+            <div id="memories-list" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+              <!-- Dynamically populated memory rows -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Authentication Screen Overlay (Login, Sign Up, Verify, Forgot, Reset)
+       ========================================================================= -->
+  <div id="auth-view" class="fixed inset-0 z-[100] bg-dark-950/95 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="max-w-md w-full bg-[#0a140e] border border-spider-500/25 rounded-2xl shadow-2xl p-5 sm:p-7 space-y-5 my-auto text-slate-100">
+      
+      <!-- Brand Header -->
+      <div class="text-center space-y-2">
+        <div class="relative inline-block">
+          <img src="/static/images/spider-avatar.png" alt="Spider Mascot" class="w-14 h-14 rounded-2xl spider-avatar object-cover mx-auto shadow-md shadow-spider-500/30">
+        </div>
+        <h2 class="text-lg font-bold text-white tracking-wide flex items-center justify-center gap-1.5">
+          GoldSea <span class="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-spider-500/20 text-spider-400 border border-spider-500/30">AI</span>
+        </h2>
+        <p id="auth-screen-subtitle" class="text-xs text-slate-400">
+          Sign in to access your private conversations and cloud memory.
+        </p>
+      </div>
+
+      <!-- 1. LOGIN VIEW -->
+      <div id="auth-login-view" class="space-y-4">
+        <form id="login-form" class="space-y-3.5">
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1" for="login-email">Email Address</label>
+            <input id="login-email" type="email" required autocomplete="email" placeholder="name@domain.com" class="auth-input w-full bg-dark-850 border border-spider-500/20 focus:border-spider-400 text-xs text-slate-100 px-3 py-2.5 rounded-xl focus:outline-none">
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-[11px] font-medium text-slate-300" for="login-password">Password</label>
+              <button id="login-forgot-link" type="button" class="text-[11px] text-spider-400 hover:text-spider-300 hover:underline">
+                Forgot password?
+              </button>
+            </div>
+            <div class="relative">
+              <input id="login-password" type="password" required autocomplete="current-password" placeholder="••••••••" class="auth-input w-full bg-dark-850 border border-spider-500/20 focus:border-spider-400 text-xs text-slate-100 px-3 py-2.5 rounded-xl focus:outline-none pr-10">
+              <button type="button" class="toggle-password-btn absolute right-3 top-2.5 text-slate-400 hover:text-slate-200" data-target="login-password">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="login-error" class="hidden text-xs text-red-300 bg-red-950/40 border border-red-500/30 p-2.5 rounded-xl"></div>
+
+          <button id="login-submit-btn" type="submit" class="btn-tap-target w-full py-2.5 px-4 bg-gradient-to-r from-spider-500 to-emerald-400 hover:from-spider-600 hover:to-emerald-500 text-dark-950 font-bold text-xs rounded-xl shadow-md shadow-spider-500/20 transition-all flex items-center justify-center gap-2">
+            <span>Sign In</span>
+          </button>
+        </form>
+
+        <div class="text-center text-xs text-slate-400 pt-2 border-t border-white/5">
+          Don't have an account? 
+          <button id="switch-to-signup-btn" type="button" class="text-spider-400 hover:text-spider-300 font-semibold hover:underline ml-1">
+            Sign up
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. SIGNUP VIEW -->
+      <div id="auth-signup-view" class="hidden space-y-4">
+        <form id="signup-form" class="space-y-3">
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1" for="signup-name">Full Name</label>
+            <input id="signup-name" type="text" required autocomplete="name" placeholder="Gokul" class="auth-input w-full bg-dark-850 border border-spider-500/20 focus:border-spider-400 text-xs text-slate-100 px-3 py-2.5 rounded-xl focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1" for="signup-email">Email Address</label>
+            <input id="signup-email" type="email" required autocomplete="email" placeholder="name@domain.com" class="auth-input w-full bg-dark-850 border border-spider-500/20 focus:border-spider-400 text-xs text-slate-100 px-3 py-2.5 rounded-xl focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1" for="signup-password">Password (min 8 characters)</label>
+            <div class="relative">
+              <input id="signup-password" type="password" required minlength="8" autocomplete="new-password" placeholder="••••••••" class="auth-input w-full bg-dark-850 border border-spider-500/20 focus:border-spider-400 text-xs text-slate-100 px-3 py-2.5 rounded-xl focus:outline-none pr-10">
+              <button type="button" class="toggle-password-btn absolute right-3 top-2.5 text-slate-400 hover:text-slate-200" data-target="signup-password">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <!-- Password Strength Meter -->
+            <div class="mt-1.5 space-y-1">
+              <div class="flex gap-1">
+                <div id="pw-bar-1" class="strength-bar flex-1 bg-white/10"></div>
+                <div id="pw-bar-2" class="strength-bar flex-1 bg-white/10"></div>
+                <div id="pw-bar-3" class="strength-bar flex-1 bg-white/10"></div>
+                <div id="pw-bar-4" class="strength-bar flex-1 bg-white/10"></div>
+              </div>
+              <div id="pw-strength-label" class="text-[10px] text-slate-400">Password strength: too short</div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1" for="signup-confirm-password">Confirm Password</label>
+            <div class="relative">
+              <input id="signup-confirm-password" type="password" required minlength="8" autocomplete="new-password" placeholder="••••••••" class="auth-input w-full bg-dark-850 border border-spider-500/20 focus:border-spider-400 text-xs text-slate-100 px-3 py-2.5 rounded-xl focus:outline-none pr-10">
+              <button type="button" class="toggle-password-btn absolute right-3 top-2.5 text-slate-400 hover:text-slate-200" data-target="signup-confirm-password">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="signup-error" class="hidden text-xs text-red-300 bg-red-950/40 border border-red-500/30 p-2.5 rounded-xl"></div>
+
+          <button id="signup-submit-btn" type="submit" class="btn-tap-target w-full py-2.5 px-4 bg-gradient-to-r from-spider-500 to-emerald-400 hover:from-spider-600 hover:to-emerald-500 text-dark-950 font-bold text-xs rounded-xl shadow-md shadow-spider-500/20 transition-all flex items-center justify-center gap-2">
+            <span>Create Account</span>
+          </button>
+        </form>
+
+        <div class="text-center text-xs text-slate-400 pt-2 border-t border-white/5">
+          Already have an account? 
+          <button id="switch-to-login-btn" type="button" class="text-spider-400 hover:text-spider-300 font-semibold hover:underline ml-1">
+            Log in
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. EMAIL VERIFICATION VIEW -->
+      <div id="auth-verify-view" class="hidden space-y-4">
+        <div class="text-center space-y-1">
+          <p class="text-xs text-slate-300">
+            We sent a 6-digit verification code to:
+          </p>
+          <p id="verify-email-display" class="text-xs font-semibold text-spider-400 truncate px-2">
+            user@example.com
+          </p>
+          <p class="text-[11px] text-slate-400">
+            Enter the code below. Valid for 10 minutes.
+          </p>
+        </div>
+
+        <!-- 6 Digit Boxes with Paste Support -->
+        <div class="flex justify-center gap-2 sm:gap-2.5 my-3" id="verify-digits-container">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="digit-box" data-index="0" id="digit-0" autofocus>
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="digit-box" data-index="1" id="digit-1">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="digit-box" data-index="2" id="digit-2">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="digit-box" data-index="3" id="digit-3">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="digit-box" data-index="4" id="digit-4">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="digit-box" data-index="5" id="digit-5">
+        </div>
+
+        <div id="verify-error" class="hidden text-xs text-red-300 bg-red-950/40 border border-red-500/30 p-2.5 rounded-xl text-center"></div>
+        <div id="verify-success" class="hidden text-xs text-spider-400 bg-spider-950/40 border border-spider-500/30 p-2.5 rounded-xl text-center"></div>
+
+        <button id="verify-submit-btn" type="button" class="btn-tap-target w-full py-2.5 px-4 bg-gradient-to-r from-spider-500 to-emerald-400 hover:from-spider-600 hover:to-emerald-500 text-dark-950 font-bold text-xs rounded-xl shadow-md shadow-spider-500/20 transition-all flex items-center justify-center gap-2">
+          <span>Verify & Enter GoldSea AI</span>
+        </button>
+
+        <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/5">
+          <button id="verify-resend-btn" type="button" class="text-spider-400 hover:text-spider-300 font-medium hover:underline disabled:opacity-40 disabled:hover:no-underline">
+            Resend Code (<span id="resend-countdown">60</span>s)
+          </button>
+          <button id="verify-diff-email-btn" type="button" class="text-slate-400 hover:text-slate-200">
+            Use different email
+          </button>
+        </div>
+      </div>
+
+      <!-- 4. FORGOT PASSWORD VIEW -->
+      <div id="auth-forgot-view" class="hidden space-y-4">
+        <form id="forgot-form" class="space-y-3.5">
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1" for="forgot-email">Account Email</label>
+            <input id="forgot-email" type="email" required autocomplete="email" placeholder="name@domain.com" class="auth-input w-full bg-dark-850 border border-spider-500/20 focus:border-spider-400 text-xs text-slate-100 px-3 py-2.5 rounded-xl focus:outline-none">
+          </div>
+
+          <div id="forgot-error" class="hidden text-xs text-red-300 bg-red-950/40 border border-red-500/30 p-2.5 rounded-xl"></div>
+          <div id="forgot-success" class="hidden text-xs text-spider-400 bg-spider-950/40 border border-spider-500/30 p-2.5 rounded-xl"></div>
+
+          <button id="forgot-submit-btn" type="submit" class="btn-tap-target w-full py-2.5 px-4 bg-gradient-to-r from-spider-500 to-emerald-400 hover:from-spider-600 hover:to-emerald-500 text-dark-950 font-bold text-xs rounded-xl shadow-md shadow-spider-500/20 transition-all flex items-center justify-center gap-2">
+            <span>Send Reset Code</span>
+          </button>
+        </form>
+
+        <div class="text-center text-xs text-slate-400 pt-2 border-t border-white/5">
+          <button id="forgot-back-to-login-btn" type="button" class="text-spider-400 hover:text-spider-300 font-semibold hover:underline">
+            Back to Sign In
+          </button>
+        </div>
+      </div>
+
+      <!-- 5. RESET PASSWORD VIEW -->
+      <div id="auth-reset-view" class="hidden space-y-4">
+        <div class="text-center space-y-1">
+          <p class="text-xs text-slate-300">
+            Enter the 6-digit code sent to <strong id="reset-email-display" class="text-spider-400">your email</strong>:
+          </p>
+        </div>
+
+        <!-- 6 Reset Digit Boxes -->
+        <div class="flex justify-center gap-2 sm:gap-2.5 my-2" id="reset-digits-container">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="digit-box" data-index="0" id="reset-digit-0" autofocus>
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="digit-box" data-index="1" id="reset-digit-1">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="digit-box" data-index="2" id="reset-digit-2">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="digit-box" data-index="3" id="reset-digit-3">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="digit-box" data-index="4" id="reset-digit-4">
+          <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="digit-box" data-index="5" id="reset-digit-5">
+        </div>
+
+        <form id="reset-form" class="space-y-3">
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1" for="reset-new-password">New Password (min 8 chars)</label>
+            <div class="relative">
+              <input id="reset-new-password" type="password" required minlength="8" autocomplete="new-password" placeholder="••••••••" class="auth-input w-full bg-dark-850 border border-spider-500/20 focus:border-spider-400 text-xs text-slate-100 px-3 py-2.5 rounded-xl focus:outline-none pr-10">
+              <button type="button" class="toggle-password-btn absolute right-3 top-2.5 text-slate-400 hover:text-slate-200" data-target="reset-new-password">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium text-slate-300 mb-1" for="reset-confirm-password">Confirm New Password</label>
+            <div class="relative">
+              <input id="reset-confirm-password" type="password" required minlength="8" autocomplete="new-password" placeholder="••••••••" class="auth-input w-full bg-dark-850 border border-spider-500/20 focus:border-spider-400 text-xs text-slate-100 px-3 py-2.5 rounded-xl focus:outline-none pr-10">
+              <button type="button" class="toggle-password-btn absolute right-3 top-2.5 text-slate-400 hover:text-slate-200" data-target="reset-confirm-password">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="reset-error" class="hidden text-xs text-red-300 bg-red-950/40 border border-red-500/30 p-2.5 rounded-xl"></div>
+          <div id="reset-success" class="hidden text-xs text-spider-400 bg-spider-950/40 border border-spider-500/30 p-2.5 rounded-xl"></div>
+
+          <button id="reset-submit-btn" type="submit" class="btn-tap-target w-full py-2.5 px-4 bg-gradient-to-r from-spider-500 to-emerald-400 hover:from-spider-600 hover:to-emerald-500 text-dark-950 font-bold text-xs rounded-xl shadow-md shadow-spider-500/20 transition-all flex items-center justify-center gap-2">
+            <span>Reset Password & Sign In</span>
+          </button>
+        </form>
+
+        <div class="text-center text-xs text-slate-400 pt-2 border-t border-white/5">
+          <button id="reset-back-to-login-btn" type="button" class="text-spider-400 hover:text-spider-300 font-semibold hover:underline">
+            Back to Sign In
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 

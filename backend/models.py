@@ -1,5 +1,51 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Dict, Any, Optional
+
+# ------------------------------------------------------------------------------
+# Authentication & Account Request Models
+# ------------------------------------------------------------------------------
+
+class SignUpRequest(BaseModel):
+    name: str = Field(..., min_length=2, max_length=100)
+    email: str = Field(..., min_length=5, max_length=255)
+    password: str = Field(..., min_length=8, max_length=128)
+    confirm_password: str = Field(..., min_length=8, max_length=128)
+
+class VerifyEmailRequest(BaseModel):
+    email: str = Field(..., min_length=5, max_length=255)
+    code: str = Field(..., min_length=6, max_length=6)
+
+class ResendCodeRequest(BaseModel):
+    email: str = Field(..., min_length=5, max_length=255)
+    purpose: str = Field(default="verification")  # 'verification' or 'password_reset'
+
+class LoginRequest(BaseModel):
+    email: str = Field(..., min_length=5, max_length=255)
+    password: str = Field(..., min_length=1, max_length=128)
+
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(..., min_length=5, max_length=255)
+
+class ResetPasswordRequest(BaseModel):
+    email: str = Field(..., min_length=5, max_length=255)
+    code: str = Field(..., min_length=6, max_length=6)
+    new_password: str = Field(..., min_length=8, max_length=128)
+    confirm_password: str = Field(..., min_length=8, max_length=128)
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8, max_length=128)
+    confirm_password: str = Field(..., min_length=8, max_length=128)
+
+class UpdateProfileRequest(BaseModel):
+    name: str = Field(..., min_length=2, max_length=100)
+
+class DeleteAccountRequest(BaseModel):
+    password: str = Field(..., min_length=1)
+
+# ------------------------------------------------------------------------------
+# Chat & Conversation Request Models
+# ------------------------------------------------------------------------------
 
 class SourceItem(BaseModel):
     title: str
