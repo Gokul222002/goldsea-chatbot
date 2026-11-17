@@ -15,7 +15,8 @@ from backend.config import (
     SMTP_TLS,
     RESEND_API_KEY,
     BREVO_API_KEY,
-    ENVIRONMENT
+    ENVIRONMENT,
+    APP_BASE_URL
 )
 
 # In-memory code capture for automated tests and development inspection
@@ -44,6 +45,8 @@ def _record_test_code(email: str, code: str, purpose: str):
 
 def _build_html_email(name: str, code: str, purpose_title: str, purpose_desc: str) -> str:
     user_name = name or "there"
+    base_url = APP_BASE_URL.rstrip("/") if APP_BASE_URL else "https://goldsea-chatbot.onrender.com"
+    logo_url = f"{base_url}/static/icons/icon-192.png"
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -56,12 +59,15 @@ def _build_html_email(name: str, code: str, purpose_title: str, purpose_desc: st
     <tr>
       <td align="center">
         <table role="presentation" width="100%" style="max-width: 500px; background-color: #0a140e; border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-          <!-- Header -->
+          <!-- Header with GoldSea Logo -->
           <tr>
-            <td style="padding: 30px 30px 20px 30px; border-bottom: 1px solid rgba(34, 197, 94, 0.1); background: linear-gradient(180deg, #0f2317 0%, #0a140e 100%);">
-              <table role="presentation" width="100%">
+            <td style="padding: 24px 30px 20px 30px; border-bottom: 1px solid rgba(34, 197, 94, 0.1); background: linear-gradient(180deg, #0f2317 0%, #0a140e 100%);">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                 <tr>
-                  <td>
+                  <td width="48" style="vertical-align: middle; padding-right: 14px;">
+                    <img src="{logo_url}" width="42" height="42" alt="GoldSea Logo" style="display: block; border-radius: 10px; border: 1px solid rgba(34, 197, 94, 0.35); box-shadow: 0 2px 8px rgba(0,0,0,0.4);" />
+                  </td>
+                  <td style="vertical-align: middle;">
                     <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
                       GoldSea <span style="background-color: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); font-size: 11px; padding: 2px 7px; border-radius: 4px; vertical-align: middle; text-transform: uppercase;">AI</span>
                     </h1>
