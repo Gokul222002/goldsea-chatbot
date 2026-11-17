@@ -1,7 +1,7 @@
 import re
 import secrets
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Request, Response, status, Depends
+from fastapi import APIRouter, HTTPException, Request, Response, status, Depends, BackgroundTasks
 from backend.models import (
     SignUpRequest,
     VerifyEmailRequest,
@@ -108,7 +108,7 @@ async def get_me(request: Request, response: Response):
 # ------------------------------------------------------------------------------
 
 @router.post("/signup")
-async def sign_up(req: SignUpRequest, request: Request, response: Response):
+async def sign_up(req: SignUpRequest, request: Request, response: Response, background_tasks: BackgroundTasks):
     client_ip = get_client_ip(request)
 
     # Rate limiting: max 5 signups per hour per IP
@@ -160,8 +160,8 @@ async def sign_up(req: SignUpRequest, request: Request, response: Response):
     code_hash_val = hash_code(code)
     create_email_code(user_id=user.id, code_hash=code_hash_val, purpose="verification", expires_in_minutes=10)
 
-    # Dispatch email
-    await send_verification_email(email=email_clean, name=name, code=code)
+    # Dispatch email in background so UI transitions instantly
+    background_tasks.add_task(send_verification_email, email=email_clean, name=name, code=code)
 
     # Set CSRF cookie
     set_csrf_cookie(response)
@@ -271,7 +271,7 @@ async def verify_email(req: VerifyEmailRequest, request: Request, response: Resp
 # ------------------------------------------------------------------------------
 
 @router.post("/resend-code")
-async def resend_code(req: ResendCodeRequest, request: Request, response: Response):
+async def resend_code(req: ResendCodeRequest, request: Request, response: Response, background_tasks: BackgroundTasks):
     client_ip = get_client_ip(request)
     email_clean = req.email.strip().lower()
     purpose = req.purpose.strip().lower()
@@ -320,11 +320,11 @@ async def resend_code(req: ResendCodeRequest, request: Request, response: Respon
     new_code_hash = hash_code(new_code)
     create_email_code(user_id=user.id, code_hash=new_code_hash, purpose=purpose, expires_in_minutes=10)
 
-    # Dispatch email
+    # Dispatch email in background
     if purpose == "password_reset":
-        await send_password_reset_email(email=email_clean, name=user.name, code=new_code)
+        background_tasks.add_task(send_password_reset_email, email=email_clean, name=user.name, code=new_code)
     else:
-        await send_verification_email(email=email_clean, name=user.name, code=new_code)
+        background_tasks.add_task(send_verification_email, email=email_clean, name=user.name, code=new_code)
 
     return {
         "success": True,
@@ -430,7 +430,7 @@ async def logout_all_devices(request: Request, response: Response, current_user:
 # ------------------------------------------------------------------------------
 
 @router.post("/forgot-password")
-async def forgot_password(req: ForgotPasswordRequest, request: Request, response: Response):
+async def forgot_password(req: ForgotPasswordRequest, request: Request, response: Response, background_tasks: BackgroundTasks):
     client_ip = get_client_ip(request)
     email_clean = req.email.strip().lower()
     validate_email_format(email_clean)
@@ -455,7 +455,7 @@ async def forgot_password(req: ForgotPasswordRequest, request: Request, response
             code = generate_six_digit_code()
             code_hash_val = hash_code(code)
             create_email_code(user_id=user.id, code_hash=code_hash_val, purpose="password_reset", expires_in_minutes=10)
-            await send_password_reset_email(email=email_clean, name=user.name, code=code)
+            background_tasks.add_task(send_password_reset_email, email=email_clean, name=user.name, code=code)
 
     # Generic response
     return {

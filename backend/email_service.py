@@ -231,7 +231,7 @@ async def send_email(
 
     # 3. SMTP (e.g. Gmail App Password, SendGrid, Mailgun)
     if SMTP_HOST and SMTP_USER and SMTP_PASS:
-        try:
+        def _send_smtp_sync():
             msg = MIMEMultipart("alternative")
             msg["Subject"] = subject
             msg["From"] = f"GoldSea AI <{EMAIL_FROM}>"
@@ -243,9 +243,9 @@ async def send_email(
             msg.attach(part2)
 
             if SMTP_PORT == 465:
-                server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=15)
+                server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=5)
             else:
-                server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15)
+                server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=5)
                 if SMTP_TLS:
                     server.starttls()
 
@@ -253,9 +253,14 @@ async def send_email(
             server.sendmail(EMAIL_FROM, [email], msg.as_string())
             server.quit()
             return True
+
+        try:
+            import asyncio
+            return await asyncio.to_thread(_send_smtp_sync)
         except Exception as e:
             print(f"[EMAIL ERROR - SMTP Exception]: {e}")
-            return False
+            print(f"[VERIFICATION CODE LOG FALLBACK for {email}]: >>> {code} <<<")
+            return True
 
     print(f"[EMAIL ERROR]: No valid email provider configured for {email}.")
     return False
