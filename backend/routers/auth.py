@@ -1,5 +1,6 @@
 import re
 import secrets
+import uuid
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Request, Response, status, Depends, BackgroundTasks
 from backend.models import (
@@ -424,6 +425,43 @@ async def logout_all_devices(request: Request, response: Response, current_user:
     clear_session_cookie(response)
     set_csrf_cookie(response)
     return {"success": True, "message": "Successfully logged out of all devices."}
+
+# ------------------------------------------------------------------------------
+# Continue Without Login (Guest Mode)
+# ------------------------------------------------------------------------------
+
+@router.post("/guest-login")
+async def guest_login(request: Request, response: Response):
+    """Allows new visitors to instantly start chatting as a guest without prior signup."""
+    client_ip = get_client_ip(request)
+    guest_id = uuid.uuid4().hex[:10]
+    guest_email = f"guest_{guest_id}@guest.goldsea.local"
+    pwd_hash = hash_password(secrets.token_hex(16))
+    user = create_user(
+        email=guest_email,
+        password_hash=pwd_hash,
+        name="Guest",
+        email_verified=True
+    )
+    token = generate_session_token()
+    token_hash = hash_session_token(token)
+    create_session(
+        user_id=user.id,
+        token_hash=token_hash,
+        user_agent=request.headers.get("user-agent", ""),
+        ip_address=client_ip
+    )
+    set_session_cookie(response, token)
+    set_csrf_cookie(response)
+    return {
+        "success": True,
+        "is_guest": True,
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "name": user.name
+        }
+    }
 
 # ------------------------------------------------------------------------------
 # Forgot & Reset Password

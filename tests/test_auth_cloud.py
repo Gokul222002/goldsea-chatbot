@@ -412,3 +412,27 @@ def test_memory_recall_and_cross_user_isolation():
         assert "Alice" in prompt_a
         assert "Rust" not in prompt_b
         assert "Bob" in prompt_b
+
+# ------------------------------------------------------------------------------
+# Test 11: Guest Mode (Continue Without Login)
+# ------------------------------------------------------------------------------
+def test_guest_login_mode():
+    client = TestClient(app)
+    # Unauthenticated gets 401
+    assert client.get("/api/auth/me").status_code == 401
+
+    # Guest login creates active guest session
+    res = client.post("/api/auth/guest-login")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["success"] is True
+    assert data["user"]["name"] == "Guest"
+
+    # Guest can access /api/auth/me and protected routes
+    me_res = client.get("/api/auth/me")
+    assert me_res.status_code == 200
+    assert me_res.json()["user"]["name"] == "Guest"
+
+    # Guest can retrieve their conversation list
+    convs_res = client.get("/api/conversations")
+    assert convs_res.status_code == 200

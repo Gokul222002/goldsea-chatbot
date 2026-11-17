@@ -1337,18 +1337,30 @@
 
   function updateUserUI(user) {
     if (!user) return;
-    const initial = (user.name || 'U').trim().charAt(0).toUpperCase();
+    const isGuest = user.name === 'Guest' || (user.email && user.email.includes('@guest.goldsea.local'));
+    const initial = isGuest ? 'G' : (user.name || 'U').trim().charAt(0).toUpperCase();
     const avatar = document.getElementById('user-avatar-initial');
     const nameEl = document.getElementById('user-display-name');
+    const statusEl = document.getElementById('user-display-status');
     const welcomeName = document.getElementById('welcome-user-name');
     const settingsName = document.getElementById('settings-user-name');
     const settingsEmail = document.getElementById('settings-user-email');
 
     if (avatar) avatar.textContent = initial;
-    if (nameEl) nameEl.textContent = user.name;
-    if (welcomeName) welcomeName.textContent = user.name;
+    if (nameEl) nameEl.textContent = isGuest ? 'Guest User' : user.name;
+    if (statusEl) statusEl.textContent = isGuest ? 'Sign up to sync' : 'Memory Active';
+    if (welcomeName) welcomeName.textContent = isGuest ? 'Guest' : user.name;
     if (settingsName) settingsName.textContent = user.name;
-    if (settingsEmail) settingsEmail.textContent = user.email;
+    if (settingsEmail) settingsEmail.textContent = isGuest ? 'Guest Session' : user.email;
+
+    const guestSignInBtn = document.getElementById('guest-sign-in-btn');
+    if (guestSignInBtn) {
+      if (isGuest) {
+        guestSignInBtn.classList.remove('hidden');
+      } else {
+        guestSignInBtn.classList.add('hidden');
+      }
+    }
   }
 
   function showAuthScreen(screen) {
@@ -1566,6 +1578,41 @@
         showAuthScreen('login');
       });
     }
+
+    // Guest Mode: Continue without login
+    async function handleGuestLogin() {
+      try {
+        const guestBtn = document.getElementById('guest-continue-btn');
+        if (guestBtn) {
+          guestBtn.disabled = true;
+          guestBtn.innerHTML = '<span class="text-xs">Entering as Guest...</span>';
+        }
+        const res = await fetch('/api/auth/guest-login', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        if (res.ok) {
+          const data = await res.json();
+          currentUser = data.user;
+          updateUserUI(currentUser);
+          hideAuthScreen();
+          await fetchConversations();
+          if (window.lucide) lucide.createIcons();
+        } else {
+          alert('Could not start guest session. Please try again or create an account.');
+          if (guestBtn) guestBtn.disabled = false;
+        }
+      } catch (err) {
+        console.error('Guest login error:', err);
+        hideAuthScreen();
+      }
+    }
+
+    const guestBtn = document.getElementById('guest-continue-btn');
+    if (guestBtn) guestBtn.addEventListener('click', handleGuestLogin);
+
+    const guestBtnSignup = document.getElementById('guest-continue-btn-signup');
+    if (guestBtnSignup) guestBtnSignup.addEventListener('click', handleGuestLogin);
 
     // Password strength listener on signup
     const signupPass = document.getElementById('signup-password');
@@ -1881,6 +1928,13 @@
     const closeSettingsBtn = document.getElementById('close-account-settings-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const exportMenuBtn = document.getElementById('export-chat-menu-btn');
+    const guestSignInBtn = document.getElementById('guest-sign-in-btn');
+    if (guestSignInBtn) {
+      guestSignInBtn.addEventListener('click', () => {
+        if (userMenuDropdown) userMenuDropdown.classList.add('hidden');
+        showAuthScreen('signup');
+      });
+    }
 
     // Toggle dropdown menu
     if (userProfileBtn && userMenuDropdown) {
