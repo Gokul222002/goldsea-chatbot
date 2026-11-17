@@ -34,8 +34,9 @@ if not SECRET_KEY and ENVIRONMENT != "production":
 # Render / Supabase / Neon provides postgres:// or postgresql://
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 if DATABASE_URL.startswith("postgres://"):
-    # SQLAlchemy requires postgresql://
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
+elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("postgresql+"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 DATABASE_PATH = os.environ.get("DATABASE_PATH", str(BASE_DIR / "data" / "goldsea.db")).strip()
 if not DATABASE_URL:
